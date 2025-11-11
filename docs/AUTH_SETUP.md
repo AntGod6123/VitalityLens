@@ -1,13 +1,13 @@
 # Authentication Setup
 
-VitalityLens uses Keycloak as the identity provider. The `infra/docker-compose.yml` file provisions a Keycloak container with an `app` realm. Follow the steps below to enable both local and Google authentication.
+VitalityLens uses Keycloak as the identity provider. The `infra/docker-compose.yml` file provisions a Keycloak container that automatically seeds the `app` realm, core clients, and a demo login by importing `infra/keycloak/realm-export.json`. Follow the steps below to enable both local and Google authentication.
 
 ## Local Accounts
 
 1. Start the stack with `docker compose -f infra/docker-compose.yml up keycloak db`.
 2. Open the Keycloak admin console at `http://localhost:8080/admin`.
 3. Log in using the credentials `admin` / `admin`.
-4. Within the `app` realm, navigate to **Users** and create local users with email + password.
+4. A demo user (`demo` / `demoPass123!`) is created automatically. Create or edit users within the `app` realm as needed for your team.
 
 ## Google OAuth
 

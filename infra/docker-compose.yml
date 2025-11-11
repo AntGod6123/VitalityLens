@@ -16,8 +16,10 @@ services:
       - app-net
 
   keycloak:
-    image: quay.io/keycloak/keycloak:latest
-    command: ["start-dev"]
+    image: quay.io/keycloak/keycloak:24.0.4
+    command:
+      - start-dev
+      - --import-realm
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://db:5432/keycloak
@@ -29,6 +31,8 @@ services:
       - db
     ports:
       - "8080:8080"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
     networks:
       - app-net
 
@@ -40,6 +44,7 @@ services:
       POSTGRES_DB: appdb
     volumes:
       - db_data:/var/lib/postgresql/data
+      - ./db/init-keycloak.sql:/docker-entrypoint-initdb.d/init-keycloak.sql:ro
     networks:
       - app-net
 
