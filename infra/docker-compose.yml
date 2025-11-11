@@ -16,8 +16,8 @@ services:
       - app-net
 
   keycloak:
-    image: quay.io/keycloak/keycloak:latest
-    command: ["start-dev"]
+    build:
+      context: ./keycloak
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://db:5432/keycloak
@@ -25,6 +25,9 @@ services:
       KC_DB_PASSWORD: keycloak
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_DEFAULT_USER: demo
+      KEYCLOAK_DEFAULT_USER_PASSWORD: "demoPass123!"
+      KEYCLOAK_DEFAULT_USER_EMAIL: demo@example.com
     depends_on:
       - db
     ports:
