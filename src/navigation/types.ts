@@ -38,6 +38,7 @@ export type BodyStackParamList = {
   DexaInput: undefined;
   GoalTracker: undefined;
   BodyFatMethod: { method: string; sex: 'male' | 'female'; ageYears: number };
+  ProgressCharts: undefined;
 };
 
 export type SettingsStackParamList = {

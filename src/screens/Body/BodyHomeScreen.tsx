@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,13 +17,14 @@ import {
   calculateFatMass,
   calculateBMI,
   katchMcArdleBMR,
-  calculateTDEE,
 } from '../../utils/bodyComposition';
+import { estimateBodyCompChange } from '../../utils/energyExpenditure';
 
 export default function BodyHomeScreen() {
   const navigation = useNavigation<any>();
   const measurements = useAppSelector(s => s.body.measurements);
   const latest = useAppSelector(s => s.body.latestMeasurement);
+  const sessions = useAppSelector(s => s.workout.sessions);
 
   const lbm = latest
     ? (latest.leanBodyMassKg ?? (latest.bodyFatPercent ? calculateLBM(latest.weightKg, latest.bodyFatPercent) : null))
@@ -36,13 +37,49 @@ export default function BodyHomeScreen() {
   const bmi = latest ? calculateBMI(latest.weightKg, latest.heightCm) : null;
   const bmr = lbm ? katchMcArdleBMR(lbm) : null;
 
+  // Between-baseline body comp estimation
+  const estimated = useMemo(() => {
+    const baseline = [...measurements]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .find(m => m.isBaseline && m.bodyFatPercent);
+    if (!baseline || !baseline.bodyFatPercent) return null;
+
+    const baselineTime = new Date(baseline.date).getTime();
+    const daysSince = (Date.now() - baselineTime) / (24 * 3600 * 1000);
+    if (daysSince < 1) return null;
+
+    const workoutsSince = sessions.filter(s => new Date(s.date).getTime() > baselineTime);
+    const aerobicKcal = workoutsSince.reduce((sum, s) => sum + (s.energyResult?.aerobicKcal ?? 0), 0);
+    const anaerobicKcal = workoutsSince.reduce((sum, s) => sum + (s.energyResult?.anaerobicKcal ?? 0), 0);
+
+    // Only show estimate when there's actual workout data to project from
+    if (aerobicKcal + anaerobicKcal === 0) return null;
+
+    return estimateBodyCompChange({
+      daysSinceBaseline: daysSince,
+      cumulativeCalorieBalance: 0,
+      cumulativeAerobicKcal: aerobicKcal,
+      cumulativeAnaerobicKcal: anaerobicKcal,
+      baselineWeightKg: baseline.weightKg,
+      baselineBFPercent: baseline.bodyFatPercent,
+    });
+  }, [measurements, sessions]);
+
   return (
     <ScreenContainer>
-      <Button
-        title="+ Add Measurement"
-        onPress={() => navigation.navigate('AddMeasurement')}
-        style={styles.addBtn}
-      />
+      <View style={styles.topRow}>
+        <Button
+          title="+ Add Measurement"
+          onPress={() => navigation.navigate('AddMeasurement')}
+          style={styles.addBtn}
+        />
+        <TouchableOpacity
+          style={styles.chartsBtn}
+          onPress={() => navigation.navigate('ProgressCharts')}
+        >
+          <Ionicons name="stats-chart-outline" size={20} color={COLORS.primary} />
+        </TouchableOpacity>
+      </View>
 
       {!latest ? (
         <EmptyState
@@ -67,6 +104,23 @@ export default function BodyHomeScreen() {
             <MetricCard label="BMI" value={bmi ? bmi.toFixed(1) : '—'} subtitle="Legacy reference" accentColor={COLORS.textMuted} style={styles.gridItem} />
           </View>
 
+          {/* Estimated body comp */}
+          {estimated && (
+            <TouchableOpacity style={styles.estimatedCard} onPress={() => navigation.navigate('ProgressCharts')}>
+              <View style={styles.estimatedHeader}>
+                <Ionicons name="analytics-outline" size={16} color={COLORS.secondary} />
+                <Text style={styles.estimatedTitle}>Estimated Since Baseline</Text>
+                <Text style={styles.estimatedSub}>from workout energy</Text>
+              </View>
+              <View style={styles.estimatedRow}>
+                <EstDelta label="Weight" value={estimated.estimatedWeightKg} unit="kg" delta={estimated.deltaFatKg + estimated.deltaLBMKg} />
+                <EstDelta label="Body Fat" value={estimated.estimatedBFPercent} unit="%" delta={-Math.abs(estimated.deltaFatKg)} downIsGood />
+                <EstDelta label="Fat Δ" value={estimated.deltaFatKg} unit="kg" delta={estimated.deltaFatKg} downIsGood showSign />
+                <EstDelta label="LBM Δ" value={estimated.deltaLBMKg} unit="kg" delta={estimated.deltaLBMKg} showSign />
+              </View>
+            </TouchableOpacity>
+          )}
+
           {/* FFMI gauge */}
           {ffmi != null && (
             <TouchableOpacity style={styles.gaugeCard} onPress={() => navigation.navigate('FFMIDetail')}>
@@ -84,12 +138,23 @@ export default function BodyHomeScreen() {
           )}
 
           {/* History */}
-          <SectionHeader title={`History (${measurements.length})`} />
-          {[...measurements].reverse().slice(0, 5).map((m, i) => (
+          <SectionHeader
+            title={`History (${measurements.length})`}
+            action={{ label: 'All Charts', onPress: () => navigation.navigate('ProgressCharts') }}
+          />
+          {[...measurements].reverse().slice(0, 5).map((m) => (
             <View key={m.id} style={styles.historyRow}>
-              <Text style={styles.historyDate}>{new Date(m.date).toLocaleDateString()}</Text>
+              <View style={styles.historyLeft}>
+                <Text style={styles.historyDate}>{new Date(m.date).toLocaleDateString()}</Text>
+                {m.isBaseline && (
+                  <View style={styles.baselineBadge}>
+                    <Text style={styles.baselineBadgeText}>baseline</Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.historyVal}>{m.weightKg} kg</Text>
               {m.bodyFatPercent ? <Text style={styles.historyVal}>{m.bodyFatPercent}% BF</Text> : null}
+              {m.ffmi ? <Text style={styles.historyVal}>FFMI {m.ffmi.toFixed(1)}</Text> : null}
             </View>
           ))}
         </>
@@ -98,14 +163,54 @@ export default function BodyHomeScreen() {
   );
 }
 
+function EstDelta({
+  label, value, unit, delta, downIsGood, showSign,
+}: {
+  label: string; value: number; unit: string; delta: number; downIsGood?: boolean; showSign?: boolean;
+}) {
+  const isPositive = delta > 0;
+  const isGood = downIsGood ? !isPositive : isPositive;
+  const color = Math.abs(delta) < 0.05 ? COLORS.textMuted : isGood ? COLORS.success : COLORS.danger;
+  const prefix = showSign && delta > 0 ? '+' : '';
+  return (
+    <View style={{ alignItems: 'center', flex: 1 }}>
+      <Text style={{ color: COLORS.textMuted, fontSize: 10, marginBottom: 4 }}>{label}</Text>
+      <Text style={{ color, fontSize: 15, fontWeight: '700' }}>{prefix}{value.toFixed(1)}{unit}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  addBtn: { marginBottom: 8 },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
+  addBtn: { flex: 1 },
+  chartsBtn: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '60',
+    padding: 10,
+  },
   date: { color: COLORS.textMuted, fontSize: 13, marginBottom: 12 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
   gridItem: { width: '48%' },
   gaugeCard: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 16, marginBottom: 12 },
   gaugeTitle: { color: COLORS.text, fontSize: 15, fontWeight: '700', marginBottom: 12 },
-  historyRow: { flexDirection: 'row', gap: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  historyDate: { color: COLORS.textMuted, fontSize: 13, flex: 1 },
+  estimatedCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.secondary + '40',
+  },
+  estimatedHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
+  estimatedTitle: { color: COLORS.text, fontSize: 14, fontWeight: '700', flex: 1 },
+  estimatedSub: { color: COLORS.textMuted, fontSize: 11 },
+  estimatedRow: { flexDirection: 'row' },
+  historyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  historyLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  historyDate: { color: COLORS.textMuted, fontSize: 13 },
+  baselineBadge: { backgroundColor: COLORS.accent + '25', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
+  baselineBadgeText: { color: COLORS.accent, fontSize: 9, fontWeight: '700', textTransform: 'uppercase' },
   historyVal: { color: COLORS.text, fontSize: 13, fontWeight: '600' },
 });

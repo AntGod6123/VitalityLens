@@ -63,7 +63,7 @@ export default function DashboardScreen() {
       />
 
       {/* Key metrics */}
-      <SectionHeader title="Body Composition" action={{ label: 'View All', onPress: () => navigation.navigate('Body') }} />
+      <SectionHeader title="Body Composition" action={{ label: 'Charts →', onPress: () => navigation.navigate('Body', { screen: 'ProgressCharts' }) }} />
       {latest ? (
         <View style={styles.grid}>
           <MetricCard
