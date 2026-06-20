@@ -6,6 +6,7 @@ import AISettingsScreen from '../../screens/Settings/AISettingsScreen';
 import QoLRecommendationsScreen from '../../screens/Dashboard/QoLRecommendationsScreen';
 import ProfileEditScreen from '../../screens/Settings/ProfileEditScreen';
 import DataManagementScreen from '../../screens/Settings/DataManagementScreen';
+import NotificationSettingsScreen from '../../screens/Settings/NotificationSettingsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +24,7 @@ export default function DashboardNavigator() {
       <Stack.Screen name="QoLRecommendations" component={QoLRecommendationsScreen} options={{ title: 'AI Recommendations' }} />
       <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ title: 'Edit Profile' }} />
       <Stack.Screen name="DataManagement" component={DataManagementScreen} options={{ title: 'Data & Backup' }} />
+      <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} options={{ title: 'Reminders' }} />
     </Stack.Navigator>
   );
 }

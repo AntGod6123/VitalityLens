@@ -145,6 +145,22 @@ export default function AISettingsScreen() {
           <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
         </View>
       </TouchableOpacity>
+      {/* Notifications */}
+      <Text style={[styles.sectionTitle, { marginTop: 28 }]}>Notifications</Text>
+      <TouchableOpacity
+        style={styles.profileCard}
+        onPress={() => navigation.navigate('NotificationSettings')}
+        activeOpacity={0.8}
+      >
+        <View style={styles.profileCardRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.profileName}>Reminders</Text>
+            <Text style={styles.profileMeta}>Schedule workout, nutrition, and vitals reminders</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+        </View>
+      </TouchableOpacity>
+
       {/* Data & Backup */}
       <Text style={[styles.sectionTitle, { marginTop: 28 }]}>Data & Backup</Text>
       <TouchableOpacity
