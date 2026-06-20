@@ -3,10 +3,27 @@
 export interface UserProfile {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   dateOfBirth: string;
   sex: 'male' | 'female';
   createdAt: string;
+  /** Limb lengths used for range-of-motion energy calculations */
+  limbs?: LimbLengths;
+  activityLevel: ActivityLevel;
+  aiProvider: AIProvider;
+  aiApiKeys: Partial<Record<AIProvider, string>>;
+  onboardingComplete: boolean;
+}
+
+/** Segment lengths in cm, measured from joint to joint */
+export interface LimbLengths {
+  thighLengthCm?: number;       // hip crease to knee centre
+  lowerLegLengthCm?: number;    // knee centre to ankle
+  upperArmLengthCm?: number;    // shoulder to elbow
+  forearmLengthCm?: number;     // elbow to wrist
+  torsoLengthCm?: number;       // shoulder to hip crease
+  footLengthCm?: number;        // heel to toe (for calf raise ROM)
+  armSpanCm?: number;           // fingertip to fingertip (derived bench width)
 }
 
 export interface BodyMeasurement {
@@ -15,6 +32,7 @@ export interface BodyMeasurement {
   weightKg: number;
   heightCm: number;
   bodyFatPercent?: number;
+  bodyFatMethod?: BodyFatMethod;
   leanBodyMassKg?: number;
   fatMassKg?: number;
   /** Fat-Free Mass Index = LBM(kg) / height(m)^2 */
@@ -23,6 +41,7 @@ export interface BodyMeasurement {
   fmi?: number;
   /** Body Mass Index (legacy reference only) */
   bmi?: number;
+  /** Circumference measurements */
   waistCm?: number;
   hipCm?: number;
   neckCm?: number;
@@ -30,7 +49,34 @@ export interface BodyMeasurement {
   armCm?: number;
   thighCm?: number;
   calfCm?: number;
+  /** Raw inputs for each BF method */
+  caliperSites?: CaliperSiteData;
   dexaInput?: DexaData;
+  isBaseline?: boolean;   // user-marked anchor measurement
+  estimatedFromEnergy?: boolean; // calculated between baselines, not directly measured
+}
+
+/** Which method was used to measure body fat */
+export type BodyFatMethod =
+  | 'tape_navy'        // US Navy circumference formula
+  | 'caliper_jp3'      // Jackson-Pollock 3-site
+  | 'caliper_jp7'      // Jackson-Pollock 7-site
+  | 'bioimpedance'     // BIA scale/device
+  | 'bodpod'           // Air displacement plethysmography
+  | 'dexa'             // Dual-energy X-ray absorptiometry
+  | 'visual'           // User estimate
+  | 'estimated';       // App-calculated between baselines
+
+export interface CaliperSiteData {
+  // Jackson-Pollock 3-site (male: chest, abdomen, thigh | female: tricep, suprailiac, thigh)
+  chest_mm?: number;
+  abdomen_mm?: number;
+  thigh_mm?: number;
+  tricep_mm?: number;
+  suprailiac_mm?: number;
+  // JP7 additional sites
+  subscapular_mm?: number;
+  midaxillary_mm?: number;
 }
 
 export interface DexaData {
@@ -48,11 +94,34 @@ export interface DexaData {
 
 export interface EnergyMetrics {
   date: string;
-  rmr: number;        // Resting Metabolic Rate (Katch-McArdle formula)
-  bmr: number;        // BMR as baseline reference
-  tdee: number;       // Total Daily Energy Expenditure
-  vo2max?: number;    // mL/kg/min
+  rmr: number;
+  bmr: number;
+  tdee: number;
+  workoutKcal?: number;       // energy from W=Fd workout calculation
+  activityKcal?: number;      // from activity multiplier (non-workout movement)
+  vo2max?: number;
   activityLevel: ActivityLevel;
+}
+
+/** Per-session energy expenditure breakdown */
+export interface WorkoutEnergyResult {
+  sessionId: string;
+  totalWorkJoules: number;
+  totalKcal: number;           // accounting for mechanical efficiency
+  aerobicKcal: number;
+  anaerobicKcal: number;
+  exerciseBreakdown: ExerciseEnergyBreakdown[];
+}
+
+export interface ExerciseEnergyBreakdown {
+  exerciseId: string;
+  exerciseName: string;
+  romMeters: number;           // range of motion used
+  totalWeightLifted: number;   // kg
+  totalRepsCompleted: number;
+  workJoules: number;
+  kcal: number;
+  metabolicType: 'aerobic' | 'anaerobic' | 'mixed';
 }
 
 export type ActivityLevel =
@@ -71,6 +140,7 @@ export interface WorkoutSession {
   type: WorkoutType;
   durationMinutes: number;
   caloriesBurned?: number;
+  energyResult?: WorkoutEnergyResult;
   notes?: string;
   exercises: ExerciseSet[];
 }
@@ -81,16 +151,27 @@ export interface ExerciseSet {
   exerciseId: string;
   exerciseName: string;
   muscleGroups: MuscleGroup[];
+  /** Programmed target — what the plan says */
+  programmedSets?: number;
+  programmedReps?: number;
+  programmedWeightKg?: number;
+  /** Squat depth variant — affects distance calculation */
+  squatDepth?: 'parallel' | 'full' | 'quarter';
   sets: SetEntry[];
 }
 
 export interface SetEntry {
   setNumber: number;
+  /** Programmed target for this set */
+  targetReps?: number;
+  targetWeightKg?: number;
+  /** Actual completed */
   reps?: number;
   weightKg?: number;
+  completed?: boolean;        // false = failed set / stopped early
   durationSeconds?: number;
   distanceMeters?: number;
-  rpe?: number; // Rate of Perceived Exertion 1-10
+  rpe?: number;
 }
 
 export type MuscleGroup =
@@ -103,16 +184,37 @@ export interface Exercise {
   muscleGroups: MuscleGroup[];
   equipment: string[];
   instructions?: string;
-  isRestricted?: boolean; // disabled by AI due to injury
+  isRestricted?: boolean;
+  /** Which limb lengths govern ROM for this exercise */
+  romType: ROMType;
 }
 
-// ─── Progressive Overload & Muscle Potential ────────────────────────────────
+/** How the exercise range-of-motion is calculated from limb lengths */
+export type ROMType =
+  | 'squat_parallel'     // thigh length
+  | 'squat_full'         // thigh + lower leg
+  | 'hinge'              // torso + lower leg (deadlift, RDL)
+  | 'horizontal_push'    // upper arm (bench press)
+  | 'horizontal_pull'    // forearm (row)
+  | 'vertical_pull'      // upper arm + forearm (pull-up, lat pulldown)
+  | 'vertical_push'      // upper arm (OHP)
+  | 'elbow_flex'         // forearm (curl)
+  | 'elbow_ext'          // forearm (pushdown, skull crusher)
+  | 'hip_thrust'         // torso length
+  | 'lunge'              // thigh length
+  | 'calf'               // foot length
+  | 'lateral_raise'      // upper arm
+  | 'cardio_distance'    // uses distanceMeters from SetEntry
+  | 'fixed_30cm'         // default for unmapped exercises
+  | 'bodyweight_squat';  // same as squat_full
+
+// ─── Progressive Overload ───────────────────────────────────────────────────
 
 export interface MuscleGrowthProjection {
   muscleGroup: MuscleGroup;
   currentEstimatedMassKg: number;
   projectedMassKg: number;
-  naturalCeilingKg: number;    // from Berkhan/Martin natural potential models
+  naturalCeilingKg: number;
   weeksToProjected: number;
   percentageOfPotential: number;
 }
@@ -178,7 +280,7 @@ export interface MedicalDocument {
   fileName: string;
   fileType: 'pdf' | 'image' | 'other';
   fileUri: string;
-  summary?: string;           // AI-generated summary
+  summary?: string;
   extractedConditions?: string[];
   extractedRestrictions?: string[];
   recommendations?: string[];
@@ -214,13 +316,67 @@ export interface Goal {
 }
 
 export type GoalType =
-  | 'weight_loss'
-  | 'muscle_gain'
-  | 'strength'
-  | 'endurance'
-  | 'body_fat'
-  | 'ffmi'
-  | 'fmi'
-  | 'nutrition'
-  | 'longevity'
-  | 'custom';
+  | 'weight_loss' | 'muscle_gain' | 'strength' | 'endurance'
+  | 'body_fat' | 'ffmi' | 'fmi' | 'nutrition' | 'longevity' | 'custom';
+
+// ─── AI Provider ─────────────────────────────────────────────────────────────
+
+export type AIProvider = 'claude' | 'openai' | 'none';
+
+export type AITier = 'free' | 'basic' | 'pro';
+
+/** Structured output format every AI skill must return */
+export interface AISkillResponse<T = unknown> {
+  success: boolean;
+  provider: AIProvider;
+  skill: AISkillName;
+  data: T;
+  rawText?: string;
+  error?: string;
+  tokensUsed?: number;
+}
+
+export type AISkillName =
+  | 'document_analysis'
+  | 'injury_filter'
+  | 'qol_recommendations'
+  | 'energy_coaching'
+  | 'nutrition_analysis'
+  | 'workout_critique';
+
+/** Structured output for document_analysis skill */
+export interface DocumentAnalysisOutput {
+  summary: string;
+  conditions: string[];
+  workoutRestrictions: string[];
+  restrictedMuscleGroups: MuscleGroup[];
+  recommendations: string[];
+  urgencyLevel: 'none' | 'monitor' | 'consult_doctor';
+}
+
+/** Structured output for injury_filter skill */
+export interface InjuryFilterOutput {
+  safeExerciseIds: string[];
+  restrictedExerciseIds: string[];
+  modifiedExercises: { exerciseId: string; modification: string }[];
+  reasoning: string;
+}
+
+/** Structured output for qol_recommendations skill */
+export interface QoLRecommendationsOutput {
+  recommendations: {
+    category: 'training' | 'nutrition' | 'recovery' | 'medical' | 'lifestyle';
+    priority: 'high' | 'medium' | 'low';
+    title: string;
+    detail: string;
+  }[];
+  longevityScore?: number;  // 0-100
+}
+
+/** Structured output for energy_coaching skill */
+export interface EnergyCoachingOutput {
+  tdeeAssessment: string;
+  calorieGuidance: string;
+  workoutIntensityFeedback: string;
+  suggestions: string[];
+}

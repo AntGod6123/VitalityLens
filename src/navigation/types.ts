@@ -31,12 +31,18 @@ export type WorkoutStackParamList = {
 export type BodyStackParamList = {
   BodyHome: undefined;
   Measurements: undefined;
-  AddMeasurement: undefined;
+  AddMeasurement: { bodyFatPercent?: number; bodyFatMethod?: string } | undefined;
   FFMIDetail: undefined;
   FMIDetail: undefined;
   EnergyMetrics: undefined;
   DexaInput: undefined;
   GoalTracker: undefined;
+  BodyFatMethod: { method: string; sex: 'male' | 'female'; ageYears: number };
+  ProgressCharts: undefined;
+};
+
+export type SettingsStackParamList = {
+  AISettings: undefined;
 };
 
 export type NutritionStackParamList = {
