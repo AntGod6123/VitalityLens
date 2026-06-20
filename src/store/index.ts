@@ -8,6 +8,7 @@ import nutritionReducer from './slices/nutritionSlice';
 import medicalReducer from './slices/medicalSlice';
 import userReducer from './slices/userSlice';
 import biomarkerReducer from './slices/biomarkerSlice';
+import planReducer from './slices/planSlice';
 
 const rootReducer = combineReducers({
   user: userReducer,
@@ -16,6 +17,7 @@ const rootReducer = combineReducers({
   nutrition: nutritionReducer,
   medical: medicalReducer,
   biomarker: biomarkerReducer,
+  plan: planReducer,
 });
 
 const persistConfig = {

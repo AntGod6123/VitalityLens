@@ -9,6 +9,8 @@ import WorkoutBuilderScreen from '../../screens/Workout/WorkoutBuilderScreen';
 import MuscleGrowthScreen from '../../screens/Workout/MuscleGrowthScreen';
 import ProgressiveOverloadScreen from '../../screens/Workout/ProgressiveOverloadScreen';
 import WorkoutCritiqueScreen from '../../screens/Workout/WorkoutCritiqueScreen';
+import PlanListScreen from '../../screens/Workout/PlanListScreen';
+import PlanDetailScreen from '../../screens/Workout/PlanDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,6 +31,8 @@ export default function WorkoutNavigator() {
       <Stack.Screen name="MuscleGrowthProjection" component={MuscleGrowthScreen} options={{ title: 'Muscle Growth' }} />
       <Stack.Screen name="ProgressiveOverload" component={ProgressiveOverloadScreen} options={{ title: 'Progressive Overload' }} />
       <Stack.Screen name="WorkoutCritique" component={WorkoutCritiqueScreen} options={{ title: 'AI Workout Critique' }} />
+      <Stack.Screen name="PlanList" component={PlanListScreen} options={{ title: 'My Plans' }} />
+      <Stack.Screen name="PlanDetail" component={PlanDetailScreen} options={{ title: 'Plan Detail' }} />
     </Stack.Navigator>
   );
 }

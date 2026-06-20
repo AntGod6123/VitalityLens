@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenContainer from '../../components/common/ScreenContainer';
 import Button from '../../components/common/Button';
 import { COLORS } from '../../constants';
 import { EXERCISE_DB } from '../../constants/exercises';
-import { MuscleGroup, WorkoutType } from '../../types';
+import { MuscleGroup, PlannedDay, PlannedExercise, WorkoutPlan, WorkoutType } from '../../types';
 import { useAppSelector } from '../../hooks/useAppSelector';
+import { useAppDispatch } from '../../hooks/useAppDispatch';
+import { addPlan } from '../../store/slices/planSlice';
 
 type Goal = 'strength' | 'hypertrophy' | 'endurance' | 'weight_loss';
 type Frequency = 3 | 4 | 5 | 6;
@@ -55,10 +58,36 @@ const SPLIT_MUSCLES: Record<Split, MuscleGroup[][]> = {
   ],
 };
 
+const SPLIT_DAY_LABELS: Record<Split, string[]> = {
+  full_body: ['Full Body A', 'Full Body B', 'Full Body C'],
+  upper_lower: ['Upper A', 'Lower A', 'Upper B', 'Lower B'],
+  push_pull_legs: ['Push A', 'Pull A', 'Legs A', 'Push B', 'Pull B', 'Legs B'],
+  bro_split: ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs'],
+};
+
+const SPLIT_TYPES: Record<Split, WorkoutType> = {
+  full_body: 'strength',
+  upper_lower: 'strength',
+  push_pull_legs: 'strength',
+  bro_split: 'strength',
+};
+
+// Rep schemes per goal
+const REP_RANGES: Record<Goal, { min: number; max: number; sets: number; rpe: number }> = {
+  strength: { min: 3, max: 6, sets: 4, rpe: 8.5 },
+  hypertrophy: { min: 8, max: 12, sets: 3, rpe: 7.5 },
+  endurance: { min: 15, max: 20, sets: 3, rpe: 7 },
+  weight_loss: { min: 12, max: 15, sets: 3, rpe: 7 },
+};
+
 export default function WorkoutBuilderScreen() {
+  const navigation = useNavigation<any>();
+  const dispatch = useAppDispatch();
+
   const [goal, setGoal] = useState<Goal>('hypertrophy');
   const [split, setSplit] = useState<Split>('push_pull_legs');
-  const [generated, setGenerated] = useState<{ dayLabel: string; exercises: string[] }[] | null>(null);
+  const [planName, setPlanName] = useState('');
+  const [generated, setGenerated] = useState<WorkoutPlan | null>(null);
 
   const restrictedIds = useAppSelector(s =>
     s.medical.injuries.filter(i => i.isActive).flatMap(i => i.restrictedExerciseIds ?? [])
@@ -66,22 +95,60 @@ export default function WorkoutBuilderScreen() {
 
   function buildPlan() {
     const dayMuscles = SPLIT_MUSCLES[split];
-    const sets = goal === 'strength' ? '4×4–6' : goal === 'hypertrophy' ? '3×8–12' : '3×15–20';
+    const repRange = REP_RANGES[goal];
+    const dayLabels = SPLIT_DAY_LABELS[split];
 
-    const plan = dayMuscles.map((muscles, i) => {
+    const days: PlannedDay[] = dayMuscles.map((muscles, i) => {
       const dayExercises = muscles.flatMap(muscle =>
         EXERCISE_DB
           .filter(ex => ex.muscleGroups.includes(muscle) && !restrictedIds.includes(ex.id))
           .slice(0, 2)
       );
       const unique = [...new Map(dayExercises.map(e => [e.id, e])).values()].slice(0, 6);
+
+      const plannedExercises: PlannedExercise[] = unique.map(ex => ({
+        exerciseId: ex.id,
+        exerciseName: ex.name,
+        muscleGroups: ex.muscleGroups,
+        sets: repRange.sets,
+        repsMin: repRange.min,
+        repsMax: repRange.max,
+        rpe: repRange.rpe,
+      }));
+
       return {
-        dayLabel: `Day ${i + 1} — ${muscles.map(m => m.charAt(0).toUpperCase() + m.slice(1)).join(' / ')}`,
-        exercises: unique.map(e => `${e.name}  ${sets}`),
+        dayIndex: i,
+        label: dayLabels[i] ?? `Day ${i + 1}`,
+        isRest: false,
+        type: SPLIT_TYPES[split],
+        exercises: plannedExercises,
       };
     });
 
+    const name = planName.trim() || `${split.replace(/_/g, ' ')} — ${goal.replace('_', ' ')}`;
+    const plan: WorkoutPlan = {
+      id: `plan-${Date.now()}`,
+      name,
+      description: `${GOALS.find(g => g.key === goal)?.label} · ${SPLITS.find(s => s.key === split)?.label} · ${days.length}-day cycle`,
+      goal,
+      split,
+      createdAt: new Date().toISOString(),
+      isActive: false,
+      days,
+    };
+
     setGenerated(plan);
+  }
+
+  function savePlan() {
+    if (!generated) return;
+    dispatch(addPlan(generated));
+    Alert.alert('Plan Saved', `"${generated.name}" is ready. Go to My Plans to activate it.`, [
+      { text: 'View Plans', onPress: () => navigation.navigate('PlanList') },
+      { text: 'Done' },
+    ]);
+    setGenerated(null);
+    setPlanName('');
   }
 
   return (
@@ -89,6 +156,16 @@ export default function WorkoutBuilderScreen() {
       <Text style={styles.intro}>
         Answer two questions and we'll generate a training plan tailored to your goal, respecting any active injury restrictions.
       </Text>
+
+      {/* Plan name */}
+      <Text style={styles.sectionTitle}>Plan Name (optional)</Text>
+      <TextInput
+        style={styles.nameInput}
+        value={planName}
+        onChangeText={setPlanName}
+        placeholder="e.g. Summer Cut 2025"
+        placeholderTextColor={COLORS.textMuted}
+      />
 
       {/* Goal */}
       <Text style={styles.sectionTitle}>Your Goal</Text>
@@ -123,17 +200,20 @@ export default function WorkoutBuilderScreen() {
 
       <Button title="Generate Plan" onPress={buildPlan} size="lg" style={styles.btn} />
 
-      {/* Generated plan */}
+      {/* Generated plan preview */}
       {generated && (
         <>
-          <Text style={styles.planTitle}>Your Plan</Text>
-          {generated.map((day, i) => (
+          <Text style={styles.planTitle}>{generated.name}</Text>
+          <Text style={styles.planDesc}>{generated.description}</Text>
+          {generated.days.map((day, i) => (
             <View key={i} style={styles.dayCard}>
-              <Text style={styles.dayLabel}>{day.dayLabel}</Text>
+              <Text style={styles.dayLabel}>{day.label}</Text>
               {day.exercises.map((ex, j) => (
                 <View key={j} style={styles.exRow}>
                   <View style={styles.exDot} />
-                  <Text style={styles.exText}>{ex}</Text>
+                  <Text style={styles.exText}>
+                    {ex.exerciseName}{'  '}{ex.sets}×{ex.repsMin}–{ex.repsMax}
+                  </Text>
                 </View>
               ))}
               {day.exercises.length === 0 && (
@@ -141,6 +221,7 @@ export default function WorkoutBuilderScreen() {
               )}
             </View>
           ))}
+          <Button title="Save Plan" onPress={savePlan} size="lg" style={{ marginBottom: 16 }} />
         </>
       )}
     </ScreenContainer>
@@ -150,6 +231,16 @@ export default function WorkoutBuilderScreen() {
 const styles = StyleSheet.create({
   intro: { color: COLORS.textMuted, fontSize: 14, lineHeight: 20, marginBottom: 20 },
   sectionTitle: { color: COLORS.text, fontSize: 17, fontWeight: '700', marginBottom: 12, marginTop: 8 },
+  nameInput: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 10,
+    padding: 12,
+    color: COLORS.text,
+    fontSize: 15,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
   optionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
   optionCard: { width: '48%', backgroundColor: COLORS.surface, borderRadius: 12, padding: 16, alignItems: 'center', borderWidth: 2, borderColor: 'transparent' },
   optionCardActive: { borderColor: COLORS.primary },
@@ -162,7 +253,8 @@ const styles = StyleSheet.create({
   splitLabelActive: { color: COLORS.text },
   splitDays: { color: COLORS.textMuted, fontSize: 12, marginTop: 3 },
   btn: { marginTop: 16, marginBottom: 8 },
-  planTitle: { color: COLORS.text, fontSize: 20, fontWeight: '800', marginTop: 20, marginBottom: 12 },
+  planTitle: { color: COLORS.text, fontSize: 20, fontWeight: '800', marginTop: 20, marginBottom: 4 },
+  planDesc: { color: COLORS.textMuted, fontSize: 13, marginBottom: 12 },
   dayCard: { backgroundColor: COLORS.surface, borderRadius: 10, padding: 14, marginBottom: 12 },
   dayLabel: { color: COLORS.primary, fontSize: 14, fontWeight: '700', marginBottom: 10 },
   exRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },

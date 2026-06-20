@@ -27,11 +27,15 @@ export default function WorkoutLogScreen() {
     ? sessions.find(s => s.id === route.params.sessionId)
     : null;
 
-  const [name, setName] = useState(existingSession?.name ?? '');
-  const [type, setType] = useState<WorkoutType>(existingSession?.type ?? 'strength');
+  const prefillExercises: ExerciseSet[] | undefined = route.params?.prefillExercises;
+
+  const [name, setName] = useState(existingSession?.name ?? route.params?.prefillName ?? '');
+  const [type, setType] = useState<WorkoutType>(existingSession?.type ?? route.params?.prefillType ?? 'strength');
   const [duration, setDuration] = useState(existingSession?.durationMinutes?.toString() ?? '');
   const [notes, setNotes] = useState(existingSession?.notes ?? '');
-  const [exercises, setExercises] = useState<ExerciseSet[]>(existingSession?.exercises ?? []);
+  const [exercises, setExercises] = useState<ExerciseSet[]>(
+    existingSession?.exercises ?? prefillExercises ?? []
+  );
 
   const isReadOnly = !!existingSession;
 

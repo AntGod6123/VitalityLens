@@ -42,6 +42,10 @@ export default function WorkoutHomeScreen() {
           <Ionicons name="sparkles" size={32} color={COLORS.primary} />
           <Text style={styles.actionLabel}>AI Critique</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('PlanList')}>
+          <Ionicons name="clipboard" size={32} color={COLORS.accent} />
+          <Text style={styles.actionLabel}>My Plans</Text>
+        </TouchableOpacity>
       </View>
 
       <SectionHeader title="Session History" />

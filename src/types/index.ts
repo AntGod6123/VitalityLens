@@ -208,6 +208,47 @@ export type ROMType =
   | 'fixed_30cm'         // default for unmapped exercises
   | 'bodyweight_squat';  // same as squat_full
 
+// ─── Workout Plans ──────────────────────────────────────────────────────────
+
+export type PlanGoal = 'strength' | 'hypertrophy' | 'endurance' | 'weight_loss';
+export type PlanSplit = 'full_body' | 'upper_lower' | 'push_pull_legs' | 'bro_split' | 'custom';
+
+export interface PlannedExercise {
+  exerciseId: string;
+  exerciseName: string;
+  muscleGroups: MuscleGroup[];
+  sets: number;
+  repsMin: number;
+  repsMax: number;
+  /** Current target weight — updated by progressive overload engine after each session */
+  weightKg?: number;
+  rpe?: number;
+  notes?: string;
+}
+
+export interface PlannedDay {
+  dayIndex: number;   // 0-based within the cycle
+  label: string;      // e.g. "Push Day", "Rest"
+  isRest: boolean;
+  type: WorkoutType;
+  exercises: PlannedExercise[];
+}
+
+export interface WorkoutPlan {
+  id: string;
+  name: string;
+  description?: string;
+  goal: PlanGoal;
+  split: PlanSplit;
+  createdAt: string;
+  /** Whether this is the currently running plan */
+  isActive: boolean;
+  /** ISO date when the plan was activated (used to determine current day index) */
+  startDate?: string;
+  /** Ordered list of days in the cycle */
+  days: PlannedDay[];
+}
+
 // ─── Progressive Overload ───────────────────────────────────────────────────
 
 export interface MuscleGrowthProjection {
