@@ -6,6 +6,7 @@ import AddMeasurementScreen from '../../screens/Body/AddMeasurementScreen';
 import FFMIDetailScreen from '../../screens/Body/FFMIDetailScreen';
 import FMIDetailScreen from '../../screens/Body/FMIDetailScreen';
 import EnergyMetricsScreen from '../../screens/Body/EnergyMetricsScreen';
+import BodyFatMethodScreen from '../../screens/Body/BodyFatMethodScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +24,7 @@ export default function BodyNavigator() {
       <Stack.Screen name="FFMIDetail" component={FFMIDetailScreen} options={{ title: 'FFMI — Muscle Index' }} />
       <Stack.Screen name="FMIDetail" component={FMIDetailScreen} options={{ title: 'FMI — Fat Index' }} />
       <Stack.Screen name="EnergyMetrics" component={EnergyMetricsScreen} options={{ title: 'Energy & Metabolism' }} />
+      <Stack.Screen name="BodyFatMethod" component={BodyFatMethodScreen} options={{ title: 'Measure Body Fat' }} />
     </Stack.Navigator>
   );
 }
