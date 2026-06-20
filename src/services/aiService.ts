@@ -19,6 +19,7 @@ import {
   EnergyCoachingOutput,
   NutritionAnalysisOutput,
   WorkoutCritiqueOutput,
+  LongevityAnalysisOutput,
   MuscleGroup,
 } from '../types';
 
@@ -378,5 +379,63 @@ Critique this session and advise on the next.`.trim();
     return wrap(config.provider, 'workout_critique', data, raw);
   } catch (e) {
     return wrapError(config.provider, 'workout_critique', e);
+  }
+}
+
+// ─── Skill: Longevity Analysis ────────────────────────────────────────────────
+
+const LONGEVITY_ANALYSIS_SYSTEM = `
+You are a longevity medicine expert assistant embedded in a health tracking app.
+Given the user's key biomarkers (VO₂ Max, HRV, grip strength, sleep, blood pressure, steps, resting heart rate),
+their body composition metrics, and chronological age, provide a concise longevity assessment.
+Respond with valid JSON:
+{
+  "overallAssessment": "2-3 sentences on their overall longevity profile",
+  "topStrengths": ["up to 3 biomarkers or habits that are strong longevity assets"],
+  "topRisks": ["up to 3 biomarkers or habits that represent the highest longevity risk"],
+  "priorityActions": [
+    {
+      "biomarker": "name of the metric to address",
+      "action": "specific, actionable intervention",
+      "timeframe": "e.g. 4 weeks, 3 months"
+    }
+  ],
+  "biologicalAgeEstimate": <estimated biological age as integer, optional>
+}
+Wrap in \`\`\`json ... \`\`\`.
+`.trim();
+
+export async function getLongevityAnalysis(
+  config: AIConfig,
+  context: {
+    chronologicalAge?: number;
+    sex?: string;
+    ffmi?: number;
+    fmi?: number;
+    markers: { label: string; value: number; unit: string; rating: string }[];
+    compositeScore: number;
+  },
+): Promise<AISkillResponse<LongevityAnalysisOutput>> {
+  try {
+    const markerLines = context.markers
+      .map(m => `  • ${m.label}: ${m.value} ${m.unit} (${m.rating})`)
+      .join('\n');
+
+    const prompt = `
+User profile:
+- Age: ${context.chronologicalAge ?? 'unknown'}, Sex: ${context.sex ?? 'unknown'}
+- FFMI: ${context.ffmi?.toFixed(1) ?? 'unknown'}, FMI: ${context.fmi?.toFixed(1) ?? 'unknown'}
+- Longevity composite score: ${context.compositeScore}/100
+
+Biomarkers:
+${markerLines}
+
+Provide a longevity assessment.`.trim();
+
+    const raw = await sendPrompt(config, LONGEVITY_ANALYSIS_SYSTEM, prompt);
+    const data = parseJSON<LongevityAnalysisOutput>(raw);
+    return wrap(config.provider, 'longevity_analysis', data, raw);
+  } catch (e) {
+    return wrapError(config.provider, 'longevity_analysis', e);
   }
 }

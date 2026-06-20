@@ -16,6 +16,7 @@ export type MainTabParamList = {
   Nutrition: undefined;
   Body: undefined;
   Medical: undefined;
+  Longevity: undefined;
 };
 
 export type WorkoutStackParamList = {

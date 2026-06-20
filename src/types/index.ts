@@ -228,7 +228,44 @@ export interface ProgressiveOverloadTarget {
   weeklyIncrementKg: number;
 }
 
-// ─── Nutrition ───────────────────────────────────────────────────────────────
+// ─── Longevity Biomarkers ─────────────────────────────────────────────────────
+
+export type BiomarkerType =
+  | 'vo2max'          // mL/kg/min — aerobic capacity
+  | 'resting_hr'      // bpm — cardiovascular efficiency
+  | 'hrv'             // ms RMSSD — autonomic nervous system recovery
+  | 'grip_strength'   // kg — musculoskeletal function, all-cause mortality predictor
+  | 'sleep_hours'     // h — recovery duration
+  | 'sleep_quality'   // 1–10 subjective
+  | 'systolic_bp'     // mmHg
+  | 'diastolic_bp'    // mmHg
+  | 'steps';          // daily step count
+
+export interface BiomarkerLog {
+  id: string;
+  date: string;
+  type: BiomarkerType;
+  value: number;
+  notes?: string;
+  /** How was this value obtained */
+  source: 'manual' | 'wearable' | 'lab';
+}
+
+/** Rating band for a biomarker reading relative to reference data */
+export type BiomarkerRating = 'elite' | 'excellent' | 'good' | 'average' | 'poor';
+
+/** Longevity Biomarkers — structured output for AI longevity_analysis skill */
+export interface LongevityAnalysisOutput {
+  overallAssessment: string;
+  topStrengths: string[];
+  topRisks: string[];
+  priorityActions: {
+    biomarker: string;
+    action: string;
+    timeframe: string;
+  }[];
+  biologicalAgeEstimate?: number;
+}
 
 export interface NutritionLog {
   id: string;
@@ -342,7 +379,8 @@ export type AISkillName =
   | 'qol_recommendations'
   | 'energy_coaching'
   | 'nutrition_analysis'
-  | 'workout_critique';
+  | 'workout_critique'
+  | 'longevity_analysis';
 
 /** Structured output for document_analysis skill */
 export interface DocumentAnalysisOutput {
