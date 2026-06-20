@@ -8,45 +8,65 @@ import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { COLORS } from '../../constants';
-import { calculateLBM, proteinTargetG, calculateTDEE, katchMcArdleBMR } from '../../utils/bodyComposition';
+import { calculateLBM, proteinTargetG, katchMcArdleBMR } from '../../utils/bodyComposition';
+import { calculateFullTDEE } from '../../utils/energyExpenditure';
 
 export default function NutritionHomeScreen() {
   const navigation = useNavigation<any>();
   const logs = useAppSelector(s => s.nutrition.logs);
   const supplements = useAppSelector(s => s.nutrition.supplements);
   const latest = useAppSelector(s => s.body.latestMeasurement);
+  const userProfile = useAppSelector(s => s.user.profile);
 
   const today = new Date().toISOString().split('T')[0];
   const todayLog = logs.find(l => l.date.startsWith(today));
 
-  const lbm = latest ? (latest.leanBodyMassKg ?? (latest.bodyFatPercent ? calculateLBM(latest.weightKg, latest.bodyFatPercent) : null)) : null;
+  const lbm = latest
+    ? (latest.leanBodyMassKg ?? (latest.bodyFatPercent ? calculateLBM(latest.weightKg, latest.bodyFatPercent) : null))
+    : null;
   const proteinTarget = lbm ? proteinTargetG(lbm) : null;
-  const tdee = lbm ? calculateTDEE(katchMcArdleBMR(lbm), 'moderately_active') : null;
+  const bmr = lbm ? katchMcArdleBMR(lbm) : null;
+  const activityLevel = userProfile?.activityLevel ?? 'moderately_active';
+  const tdeeResult = bmr ? calculateFullTDEE(bmr, activityLevel, 0) : null;
+  const tdee = tdeeResult?.tdee ?? null;
+
+  const carbTarget = tdee && proteinTarget ? Math.round((tdee * 0.45) / 4) : null;
+  const fatTarget = tdee ? Math.round((tdee * 0.25) / 9) : null;
+  const waterTarget = 2500; // ml
 
   return (
     <ScreenContainer>
-      {/* Targets */}
-      {tdee && (
+      {/* Targets & today progress */}
+      {tdee ? (
         <View style={styles.targetsCard}>
           <Text style={styles.targetsTitle}>Today's Targets</Text>
           <View style={styles.targetsRow}>
             <TargetItem label="Calories" value={`${tdee}`} unit="kcal" color={COLORS.warning} />
             <TargetItem label="Protein" value={`${proteinTarget}`} unit="g" color={COLORS.primary} />
+            <TargetItem label="Carbs" value={`${carbTarget}`} unit="g" color={COLORS.secondary} />
+            <TargetItem label="Fat" value={`${fatTarget}`} unit="g" color={COLORS.accent} />
           </View>
           {todayLog && (
-            <View style={styles.progressRow}>
+            <View style={styles.progressSection}>
               <MacroBar label="Cal" current={todayLog.totalCalories} target={tdee} color={COLORS.warning} />
               <MacroBar label="Pro" current={todayLog.totalProteinG} target={proteinTarget ?? 150} color={COLORS.primary} />
-              <MacroBar label="Carb" current={todayLog.totalCarbsG} target={Math.round(tdee * 0.45 / 4)} color={COLORS.secondary} />
-              <MacroBar label="Fat" current={todayLog.totalFatG} target={Math.round(tdee * 0.25 / 9)} color={COLORS.accent} />
+              <MacroBar label="Carb" current={todayLog.totalCarbsG} target={carbTarget ?? 200} color={COLORS.secondary} />
+              <MacroBar label="Fat" current={todayLog.totalFatG} target={fatTarget ?? 65} color={COLORS.accent} />
+              {todayLog.waterMl != null && (
+                <MacroBar label="Water" current={todayLog.waterMl} target={waterTarget} color={COLORS.primary} unit="ml" />
+              )}
             </View>
           )}
+        </View>
+      ) : (
+        <View style={styles.noBioCard}>
+          <Text style={styles.noBioText}>Add a body measurement with body fat % to see calorie and macro targets.</Text>
         </View>
       )}
 
       {/* Quick actions */}
       <View style={styles.actions}>
-        <Button title="Log Food" onPress={() => navigation.navigate('FoodLog', { date: today })} style={styles.actionBtn} />
+        <Button title="Log Today" onPress={() => navigation.navigate('FoodLog', { date: today })} style={styles.actionBtn} />
         <Button title="Supplements" onPress={() => navigation.navigate('SupplementLog')} variant="secondary" style={styles.actionBtn} />
         <Button title="AI Analysis" onPress={() => navigation.navigate('NutritionAnalysis')} variant="secondary" style={styles.actionBtn} />
       </View>
@@ -57,29 +77,45 @@ export default function NutritionHomeScreen() {
       />
 
       {logs.length === 0 ? (
-        <EmptyState icon="nutrition-outline" title="No food logs" subtitle="Start logging meals to track your nutrition." />
+        <EmptyState icon="nutrition-outline" title="No food logs" subtitle="Tap Log Today to start tracking your meals." />
       ) : (
-        [...logs].reverse().slice(0, 5).map(log => (
-          <TouchableOpacity
-            key={log.id}
-            style={styles.logCard}
-            onPress={() => navigation.navigate('FoodLog', { date: log.date })}
-          >
-            <Text style={styles.logDate}>{new Date(log.date).toLocaleDateString()}</Text>
-            <View style={styles.macroRow}>
-              <MacroChip label="Cal" value={log.totalCalories} color={COLORS.warning} />
-              <MacroChip label="Pro" value={`${log.totalProteinG}g`} color={COLORS.primary} />
-              <MacroChip label="Carb" value={`${log.totalCarbsG}g`} color={COLORS.secondary} />
-              <MacroChip label="Fat" value={`${log.totalFatG}g`} color={COLORS.accent} />
-            </View>
-          </TouchableOpacity>
-        ))
+        [...logs]
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 7)
+          .map(log => (
+            <TouchableOpacity
+              key={log.id}
+              style={styles.logCard}
+              onPress={() => navigation.navigate('FoodLog', { date: log.date.split('T')[0] })}
+            >
+              <View style={styles.logCardTop}>
+                <Text style={styles.logDate}>
+                  {new Date(log.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                </Text>
+                <View style={styles.logMacroRow}>
+                  <MacroChip label="Cal" value={log.totalCalories} color={COLORS.warning} />
+                  <MacroChip label="P" value={`${log.totalProteinG}g`} color={COLORS.primary} />
+                  <MacroChip label="C" value={`${log.totalCarbsG}g`} color={COLORS.secondary} />
+                  <MacroChip label="F" value={`${log.totalFatG}g`} color={COLORS.accent} />
+                </View>
+              </View>
+              {log.waterMl != null && (
+                <View style={styles.waterRow}>
+                  <Ionicons name="water-outline" size={13} color={COLORS.primary} />
+                  <Text style={styles.waterText}>{log.waterMl} ml water</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ))
       )}
 
       {/* Supplements */}
       {supplements.length > 0 && (
         <>
-          <SectionHeader title="Active Supplements" action={{ label: 'Manage', onPress: () => navigation.navigate('SupplementLog') }} />
+          <SectionHeader
+            title="Active Supplements"
+            action={{ label: 'Manage', onPress: () => navigation.navigate('SupplementLog') }}
+          />
           {supplements.slice(0, 3).map(s => (
             <View key={s.id} style={styles.suppRow}>
               <Ionicons name="flask" size={16} color={COLORS.secondary} style={{ marginRight: 10 }} />
@@ -87,29 +123,53 @@ export default function NutritionHomeScreen() {
               <Text style={styles.suppDose}>{s.doseAmount}{s.doseUnit}</Text>
             </View>
           ))}
+          {supplements.length > 3 && (
+            <TouchableOpacity onPress={() => navigation.navigate('SupplementLog')}>
+              <Text style={styles.moreSupps}>+{supplements.length - 3} more supplements →</Text>
+            </TouchableOpacity>
+          )}
         </>
       )}
     </ScreenContainer>
   );
 }
 
-function TargetItem({ label, value, unit, color }: { label: string; value: string; unit: string; color: string }) {
+function TargetItem({ label, value, unit, color }: { label: string; value: string | null; unit: string; color: string }) {
   return (
     <View style={styles.targetItem}>
-      <Text style={styles.targetValue}><Text style={{ color }}>{value}</Text> {unit}</Text>
+      <Text style={[styles.targetValue, { color }]}>{value ?? '—'}</Text>
+      <Text style={styles.targetUnit}>{unit}</Text>
       <Text style={styles.targetLabel}>{label}</Text>
     </View>
   );
 }
 
-function MacroBar({ label, current, target, color }: { label: string; current: number; target: number; color: string }) {
+function MacroBar({
+  label,
+  current,
+  target,
+  color,
+  unit = '',
+}: {
+  label: string;
+  current: number;
+  target: number;
+  color: string;
+  unit?: string;
+}) {
   const pct = Math.min((current / target) * 100, 100);
+  const over = current > target;
   return (
     <View style={styles.macroBarWrapper}>
-      <View style={styles.macroTrack}>
-        <View style={[styles.macroFill, { width: `${pct}%`, backgroundColor: color }]} />
+      <View style={styles.macroBarLabelRow}>
+        <Text style={styles.macroBarLabel}>{label}</Text>
+        <Text style={[styles.macroBarValue, over && { color: COLORS.danger }]}>
+          {current}{unit} / {target}{unit}
+        </Text>
       </View>
-      <Text style={styles.macroBarLabel}>{label} {current}/{target}</Text>
+      <View style={styles.macroTrack}>
+        <View style={[styles.macroFill, { width: `${pct}%`, backgroundColor: over ? COLORS.danger : color }]} />
+      </View>
     </View>
   );
 }
@@ -125,23 +185,32 @@ function MacroChip({ label, value, color }: { label: string; value: string | num
 const styles = StyleSheet.create({
   targetsCard: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 16, marginBottom: 12 },
   targetsTitle: { color: COLORS.text, fontSize: 15, fontWeight: '700', marginBottom: 12 },
-  targetsRow: { flexDirection: 'row', gap: 20, marginBottom: 12 },
-  targetItem: {},
-  targetValue: { color: COLORS.text, fontSize: 20, fontWeight: '700' },
-  targetLabel: { color: COLORS.textMuted, fontSize: 12 },
-  progressRow: { gap: 8 },
-  macroBarWrapper: {},
-  macroTrack: { height: 6, backgroundColor: COLORS.surfaceLight, borderRadius: 3, overflow: 'hidden', marginBottom: 2 },
-  macroFill: { height: 6, borderRadius: 3 },
-  macroBarLabel: { color: COLORS.textMuted, fontSize: 11 },
-  actions: { flexDirection: 'row', gap: 10, marginBottom: 8 },
+  targetsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
+  targetItem: { alignItems: 'center' },
+  targetValue: { fontSize: 18, fontWeight: '800' },
+  targetUnit: { color: COLORS.textMuted, fontSize: 11 },
+  targetLabel: { color: COLORS.textMuted, fontSize: 11, marginTop: 1 },
+  progressSection: { gap: 10 },
+  macroBarWrapper: { gap: 4 },
+  macroBarLabelRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  macroBarLabel: { color: COLORS.textMuted, fontSize: 11, fontWeight: '600' },
+  macroBarValue: { color: COLORS.textMuted, fontSize: 11 },
+  macroTrack: { height: 7, backgroundColor: COLORS.surfaceLight, borderRadius: 4, overflow: 'hidden' },
+  macroFill: { height: 7, borderRadius: 4 },
+  noBioCard: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 16, marginBottom: 12 },
+  noBioText: { color: COLORS.textMuted, fontSize: 13, lineHeight: 19 },
+  actions: { flexDirection: 'row', gap: 8, marginBottom: 8 },
   actionBtn: { flex: 1 },
   logCard: { backgroundColor: COLORS.surface, borderRadius: 10, padding: 14, marginBottom: 10 },
-  logDate: { color: COLORS.textMuted, fontSize: 12, marginBottom: 8 },
-  macroRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  chip: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
-  chipText: { fontSize: 12, fontWeight: '600' },
+  logCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  logDate: { color: COLORS.textMuted, fontSize: 12, fontWeight: '600' },
+  logMacroRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' },
+  chip: { borderRadius: 5, paddingHorizontal: 6, paddingVertical: 3 },
+  chipText: { fontSize: 11, fontWeight: '600' },
+  waterRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8 },
+  waterText: { color: COLORS.textMuted, fontSize: 12 },
   suppRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   suppName: { color: COLORS.text, fontSize: 14, flex: 1 },
   suppDose: { color: COLORS.textMuted, fontSize: 13 },
+  moreSupps: { color: COLORS.primary, fontSize: 13, marginTop: 8, paddingBottom: 4 },
 });
