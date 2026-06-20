@@ -145,6 +145,22 @@ export default function AISettingsScreen() {
           <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
         </View>
       </TouchableOpacity>
+      {/* Data & Backup */}
+      <Text style={[styles.sectionTitle, { marginTop: 28 }]}>Data & Backup</Text>
+      <TouchableOpacity
+        style={styles.profileCard}
+        onPress={() => navigation.navigate('DataManagement')}
+        activeOpacity={0.8}
+      >
+        <View style={styles.profileCardRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.profileName}>Export / Restore Data</Text>
+            <Text style={styles.profileMeta}>Back up all your logs and settings to a JSON file</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+        </View>
+      </TouchableOpacity>
+
       <TouchableOpacity
         style={styles.resetBtn}
         onPress={() =>
