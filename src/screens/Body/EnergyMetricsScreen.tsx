@@ -1,5 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import ScreenContainer from '../../components/common/ScreenContainer';
 import MetricCard from '../../components/common/MetricCard';
 import { useAppSelector } from '../../hooks/useAppSelector';
@@ -14,6 +16,7 @@ import {
 import { calculateFullTDEE } from '../../utils/energyExpenditure';
 
 export default function EnergyMetricsScreen() {
+  const navigation = useNavigation<any>();
   const latest = useAppSelector(s => s.body.latestMeasurement);
   const userProfile = useAppSelector(s => s.user.profile);
   const sessions = useAppSelector(s => s.workout.sessions);
@@ -47,10 +50,18 @@ export default function EnergyMetricsScreen() {
 
   return (
     <ScreenContainer>
-      <Text style={styles.heading}>Energy & Metabolism</Text>
-      <Text style={styles.sub}>
-        TDEE = BMR (Katch-McArdle) + NEAT activity + today's workout energy (W=Fd).
-      </Text>
+      <View style={styles.headingRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.heading}>Energy & Metabolism</Text>
+          <Text style={styles.sub}>
+            TDEE = BMR (Katch-McArdle) + NEAT activity + today's workout energy (W=Fd).
+          </Text>
+        </View>
+        <TouchableOpacity style={styles.coachBtn} onPress={() => navigation.navigate('EnergyCoaching')}>
+          <Ionicons name="sparkles" size={16} color={COLORS.secondary} />
+          <Text style={styles.coachBtnText}>Coach</Text>
+        </TouchableOpacity>
+      </View>
 
       {!latest || !lbm ? (
         <Text style={styles.empty}>Add a measurement with body fat % to unlock energy metrics.</Text>
@@ -146,8 +157,20 @@ function WaterfallRow({
 }
 
 const styles = StyleSheet.create({
+  headingRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 20 },
   heading: { color: COLORS.text, fontSize: 22, fontWeight: '800', marginBottom: 6 },
-  sub: { color: COLORS.textMuted, fontSize: 13, lineHeight: 18, marginBottom: 20 },
+  sub: { color: COLORS.textMuted, fontSize: 13, lineHeight: 18 },
+  coachBtn: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.secondary + '60',
+    padding: 10,
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  coachBtnText: { color: COLORS.secondary, fontSize: 10, fontWeight: '700' },
   empty: { color: COLORS.textMuted, fontSize: 15, textAlign: 'center', marginTop: 60 },
   sectionTitle: { color: COLORS.text, fontSize: 17, fontWeight: '700', marginBottom: 12, marginTop: 8 },
   waterfallCard: {

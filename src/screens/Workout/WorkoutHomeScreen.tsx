@@ -34,6 +34,14 @@ export default function WorkoutHomeScreen() {
           <Ionicons name="trending-up" size={32} color={COLORS.warning} />
           <Text style={styles.actionLabel}>Projections</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('ProgressiveOverload')}>
+          <Ionicons name="barbell" size={32} color={COLORS.secondary} />
+          <Text style={styles.actionLabel}>Overload</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('WorkoutCritique')}>
+          <Ionicons name="sparkles" size={32} color={COLORS.primary} />
+          <Text style={styles.actionLabel}>AI Critique</Text>
+        </TouchableOpacity>
       </View>
 
       <SectionHeader title="Session History" />

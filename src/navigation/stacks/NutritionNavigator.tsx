@@ -5,6 +5,7 @@ import NutritionHomeScreen from '../../screens/Nutrition/NutritionHomeScreen';
 import FoodLogScreen from '../../screens/Nutrition/FoodLogScreen';
 import SupplementLogScreen from '../../screens/Nutrition/SupplementLogScreen';
 import MacroTargetsScreen from '../../screens/Nutrition/MacroTargetsScreen';
+import NutritionAnalysisScreen from '../../screens/Nutrition/NutritionAnalysisScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +22,7 @@ export default function NutritionNavigator() {
       <Stack.Screen name="FoodLog" component={FoodLogScreen} options={{ title: 'Food Log' }} />
       <Stack.Screen name="SupplementLog" component={SupplementLogScreen} options={{ title: 'Supplements' }} />
       <Stack.Screen name="MacroTargets" component={MacroTargetsScreen} options={{ title: 'Macro Targets' }} />
+      <Stack.Screen name="NutritionAnalysis" component={NutritionAnalysisScreen} options={{ title: 'AI Nutrition Analysis' }} />
     </Stack.Navigator>
   );
 }

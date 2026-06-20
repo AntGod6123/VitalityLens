@@ -18,13 +18,15 @@ import {
   calculateBMI,
   katchMcArdleBMR,
 } from '../../utils/bodyComposition';
-import { estimateBodyCompChange } from '../../utils/energyExpenditure';
+import { estimateBodyCompChange, calculateFullTDEE } from '../../utils/energyExpenditure';
 
 export default function BodyHomeScreen() {
   const navigation = useNavigation<any>();
   const measurements = useAppSelector(s => s.body.measurements);
   const latest = useAppSelector(s => s.body.latestMeasurement);
   const sessions = useAppSelector(s => s.workout.sessions);
+  const nutritionLogs = useAppSelector(s => s.nutrition.logs);
+  const userProfile = useAppSelector(s => s.user.profile);
 
   const lbm = latest
     ? (latest.leanBodyMassKg ?? (latest.bodyFatPercent ? calculateLBM(latest.weightKg, latest.bodyFatPercent) : null))
@@ -55,15 +57,27 @@ export default function BodyHomeScreen() {
     // Only show estimate when there's actual workout data to project from
     if (aerobicKcal + anaerobicKcal === 0) return null;
 
+    // Sum calorie balance from nutrition logs since baseline
+    const activityLevel = userProfile?.activityLevel ?? 'moderately_active';
+    const logsSince = nutritionLogs.filter(l => new Date(l.date).getTime() > baselineTime);
+    const cumulativeCalorieBalance = logsSince.reduce((total, log) => {
+      const logDate = log.date;
+      const workoutKcalOnDay = sessions
+        .filter(s => s.date.startsWith(logDate.slice(0, 10)))
+        .reduce((sum, s) => sum + (s.caloriesBurned ?? 0), 0);
+      const estimatedTDEE = bmr ? calculateFullTDEE(bmr, activityLevel, workoutKcalOnDay).tdee : 0;
+      return total + (log.totalCalories - estimatedTDEE);
+    }, 0);
+
     return estimateBodyCompChange({
       daysSinceBaseline: daysSince,
-      cumulativeCalorieBalance: 0,
+      cumulativeCalorieBalance,
       cumulativeAerobicKcal: aerobicKcal,
       cumulativeAnaerobicKcal: anaerobicKcal,
       baselineWeightKg: baseline.weightKg,
       baselineBFPercent: baseline.bodyFatPercent,
     });
-  }, [measurements, sessions]);
+  }, [measurements, sessions, nutritionLogs, userProfile, bmr]);
 
   return (
     <ScreenContainer>

@@ -54,13 +54,24 @@ export default function DashboardScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Quick action */}
-      <Button
-        title="+ Log Workout"
-        onPress={() => navigation.navigate('Workout', { screen: 'WorkoutLog' })}
-        size="lg"
-        style={styles.cta}
-      />
+      {/* Quick actions */}
+      <View style={styles.ctaRow}>
+        <Button
+          title="+ Log Workout"
+          onPress={() => navigation.navigate('Workout', { screen: 'WorkoutLog' })}
+          size="lg"
+          style={{ flex: 1 }}
+        />
+        {aiProvider !== 'none' && (
+          <TouchableOpacity
+            style={styles.aiBtn}
+            onPress={() => navigation.navigate('QoLRecommendations')}
+          >
+            <Ionicons name="sparkles" size={18} color={COLORS.secondary} />
+            <Text style={styles.aiBtnText}>AI</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Key metrics */}
       <SectionHeader title="Body Composition" action={{ label: 'Charts →', onPress: () => navigation.navigate('Body', { screen: 'ProgressCharts' }) }} />
@@ -178,7 +189,18 @@ const styles = StyleSheet.create({
   settingsBtn: { padding: 6, position: 'relative' },
   aiBadge: { position: 'absolute', top: 6, right: 6, width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.secondary },
   sessionKcal: { color: COLORS.accent, fontSize: 12, fontWeight: '600', marginTop: 2 },
-  cta: { marginTop: 16, marginBottom: 4 },
+  ctaRow: { flexDirection: 'row', alignItems: 'stretch', gap: 10, marginTop: 16, marginBottom: 4 },
+  aiBtn: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.secondary + '60',
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  aiBtnText: { color: COLORS.secondary, fontSize: 10, fontWeight: '700' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   gridItem: { width: '48%' },
   noBioCard: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 16 },

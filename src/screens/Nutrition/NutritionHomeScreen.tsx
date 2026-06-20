@@ -48,6 +48,7 @@ export default function NutritionHomeScreen() {
       <View style={styles.actions}>
         <Button title="Log Food" onPress={() => navigation.navigate('FoodLog', { date: today })} style={styles.actionBtn} />
         <Button title="Supplements" onPress={() => navigation.navigate('SupplementLog')} variant="secondary" style={styles.actionBtn} />
+        <Button title="AI Analysis" onPress={() => navigation.navigate('NutritionAnalysis')} variant="secondary" style={styles.actionBtn} />
       </View>
 
       <SectionHeader

@@ -17,6 +17,8 @@ import {
   InjuryFilterOutput,
   QoLRecommendationsOutput,
   EnergyCoachingOutput,
+  NutritionAnalysisOutput,
+  WorkoutCritiqueOutput,
   MuscleGroup,
 } from '../types';
 
@@ -265,5 +267,116 @@ Provide energy coaching.`.trim();
     return wrap(config.provider, 'energy_coaching', data, raw);
   } catch (e) {
     return wrapError(config.provider, 'energy_coaching', e);
+  }
+}
+
+// ─── Skill: Nutrition Analysis ────────────────────────────────────────────────
+
+const NUTRITION_ANALYSIS_SYSTEM = `
+You are a sports nutrition analyst embedded in a fitness tracking app.
+Given the user's recent nutrition logs (calories, macros), TDEE, and body composition goals,
+analyse their diet quality and provide actionable guidance.
+Respond with valid JSON:
+{
+  "assessment": "2-3 sentence overall assessment of their nutrition",
+  "calorieBalance": "surplus | deficit | maintenance",
+  "proteinAdequacy": "adequate | low | high",
+  "micronutrientFlags": ["potential deficiencies or excess to watch"],
+  "suggestions": ["up to 5 specific dietary improvements"],
+  "mealTimingTips": ["up to 3 peri-workout or circadian meal timing tips"]
+}
+Wrap in \`\`\`json ... \`\`\`.
+`.trim();
+
+export async function getNutritionAnalysis(
+  config: AIConfig,
+  context: {
+    avgDailyCalories: number;
+    avgProteinG: number;
+    avgCarbsG: number;
+    avgFatG: number;
+    tdee: number;
+    goal: string;
+    daysLogged: number;
+    lbmKg?: number;
+  },
+): Promise<AISkillResponse<NutritionAnalysisOutput>> {
+  try {
+    const prompt = `
+Nutrition summary (${context.daysLogged} days logged):
+- Average daily calories: ${context.avgDailyCalories} kcal
+- Average protein: ${context.avgProteinG}g  |  Carbs: ${context.avgCarbsG}g  |  Fat: ${context.avgFatG}g
+- Estimated TDEE: ${context.tdee} kcal
+- Caloric balance: ${context.avgDailyCalories - context.tdee > 0 ? '+' : ''}${Math.round(context.avgDailyCalories - context.tdee)} kcal/day
+- Lean body mass: ${context.lbmKg ? `${context.lbmKg.toFixed(1)} kg` : 'unknown'}
+- Goal: ${context.goal}
+
+Analyse their nutrition and provide recommendations.`.trim();
+
+    const raw = await sendPrompt(config, NUTRITION_ANALYSIS_SYSTEM, prompt);
+    const data = parseJSON<NutritionAnalysisOutput>(raw);
+    return wrap(config.provider, 'nutrition_analysis', data, raw);
+  } catch (e) {
+    return wrapError(config.provider, 'nutrition_analysis', e);
+  }
+}
+
+// ─── Skill: Workout Critique ──────────────────────────────────────────────────
+
+const WORKOUT_CRITIQUE_SYSTEM = `
+You are an elite strength and conditioning coach assistant.
+Given the details of a completed workout session (exercises, sets, reps, weights, completion rates),
+critique the session and provide forward-looking guidance.
+Respond with valid JSON:
+{
+  "overallRating": <number 1-10>,
+  "volumeAssessment": "1-2 sentences on total training volume",
+  "intensityAssessment": "1-2 sentences on load selection and RPE",
+  "recoveryRisk": "low | moderate | high",
+  "strongPoints": ["up to 3 things done well"],
+  "improvements": ["up to 3 specific things to improve next session"],
+  "nextSessionFocus": "1 sentence on the single most important focus for next time"
+}
+Wrap in \`\`\`json ... \`\`\`.
+`.trim();
+
+export async function getWorkoutCritique(
+  config: AIConfig,
+  context: {
+    sessionName: string;
+    sessionType: string;
+    durationMinutes: number;
+    totalKcal: number;
+    exercises: {
+      name: string;
+      sets: number;
+      totalReps: number;
+      maxWeightKg: number;
+      completionRate: number;
+      avgRpe?: number;
+    }[];
+    overallCompletionRate: number;
+  },
+): Promise<AISkillResponse<WorkoutCritiqueOutput>> {
+  try {
+    const exerciseLines = context.exercises.map(
+      e => `  • ${e.name}: ${e.sets} sets × ${e.totalReps} reps @ ${e.maxWeightKg}kg — ${Math.round(e.completionRate * 100)}% completion${e.avgRpe ? ` (RPE ${e.avgRpe.toFixed(1)})` : ''}`,
+    ).join('\n');
+
+    const prompt = `
+Session: "${context.sessionName}" (${context.sessionType})
+Duration: ${context.durationMinutes} min  |  Energy: ${context.totalKcal} kcal
+Overall completion: ${Math.round(context.overallCompletionRate * 100)}%
+
+Exercises performed:
+${exerciseLines}
+
+Critique this session and advise on the next.`.trim();
+
+    const raw = await sendPrompt(config, WORKOUT_CRITIQUE_SYSTEM, prompt);
+    const data = parseJSON<WorkoutCritiqueOutput>(raw);
+    return wrap(config.provider, 'workout_critique', data, raw);
+  } catch (e) {
+    return wrapError(config.provider, 'workout_critique', e);
   }
 }

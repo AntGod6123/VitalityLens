@@ -380,3 +380,24 @@ export interface EnergyCoachingOutput {
   workoutIntensityFeedback: string;
   suggestions: string[];
 }
+
+/** Structured output for nutrition_analysis skill */
+export interface NutritionAnalysisOutput {
+  assessment: string;
+  calorieBalance: 'surplus' | 'deficit' | 'maintenance';
+  proteinAdequacy: 'adequate' | 'low' | 'high';
+  micronutrientFlags: string[];
+  suggestions: string[];
+  mealTimingTips: string[];
+}
+
+/** Structured output for workout_critique skill */
+export interface WorkoutCritiqueOutput {
+  overallRating: number;
+  volumeAssessment: string;
+  intensityAssessment: string;
+  recoveryRisk: 'low' | 'moderate' | 'high';
+  strongPoints: string[];
+  improvements: string[];
+  nextSessionFocus: string;
+}
