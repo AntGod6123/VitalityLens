@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppSelector';
 import { setAIProvider, setAIApiKey, setActivityLevel, clearProfile } from '../../store/slices/userSlice';
@@ -15,6 +16,7 @@ const PROVIDERS: { value: AIProvider; label: string; description: string }[] = [
 ];
 
 export default function AISettingsScreen() {
+  const navigation = useNavigation<any>();
   const dispatch = useAppDispatch();
   const profile = useAppSelector(s => s.user.profile);
   const currentProvider = profile?.aiProvider ?? 'none';
@@ -127,13 +129,22 @@ export default function AISettingsScreen() {
 
       {/* Profile info */}
       <Text style={[styles.sectionTitle, { marginTop: 28 }]}>Profile</Text>
-      <View style={styles.profileCard}>
-        <Text style={styles.profileName}>{profile?.name ?? '—'}</Text>
-        <Text style={styles.profileMeta}>
-          {profile?.sex ? profile.sex.charAt(0).toUpperCase() + profile.sex.slice(1) : ''}
-          {profile?.dateOfBirth ? ` · Born ${profile.dateOfBirth}` : ''}
-        </Text>
-      </View>
+      <TouchableOpacity
+        style={styles.profileCard}
+        onPress={() => navigation.navigate('ProfileEdit')}
+        activeOpacity={0.8}
+      >
+        <View style={styles.profileCardRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.profileName}>{profile?.name ?? '—'}</Text>
+            <Text style={styles.profileMeta}>
+              {profile?.sex ? profile.sex.charAt(0).toUpperCase() + profile.sex.slice(1) : ''}
+              {profile?.dateOfBirth ? ` · Born ${profile.dateOfBirth}` : ''}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+        </View>
+      </TouchableOpacity>
       <TouchableOpacity
         style={styles.resetBtn}
         onPress={() =>
@@ -200,6 +211,7 @@ const styles = StyleSheet.create({
   },
   eyeBtn: { padding: 10, marginLeft: 4 },
   saveBtn: { marginTop: 4, marginBottom: 4 },
+  profileCardRow: { flexDirection: 'row', alignItems: 'center' },
   profileCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 10,

@@ -4,6 +4,7 @@ import { COLORS } from '../../constants';
 import DashboardScreen from '../../screens/Dashboard/DashboardScreen';
 import AISettingsScreen from '../../screens/Settings/AISettingsScreen';
 import QoLRecommendationsScreen from '../../screens/Dashboard/QoLRecommendationsScreen';
+import ProfileEditScreen from '../../screens/Settings/ProfileEditScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -19,6 +20,7 @@ export default function DashboardNavigator() {
       <Stack.Screen name="DashboardHome" component={DashboardScreen} options={{ title: 'VitalityLens' }} />
       <Stack.Screen name="AISettings" component={AISettingsScreen} options={{ title: 'AI & Settings' }} />
       <Stack.Screen name="QoLRecommendations" component={QoLRecommendationsScreen} options={{ title: 'AI Recommendations' }} />
+      <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ title: 'Edit Profile' }} />
     </Stack.Navigator>
   );
 }
