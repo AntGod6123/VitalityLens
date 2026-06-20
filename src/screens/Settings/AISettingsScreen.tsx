@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppSelector';
-import { setAIProvider, setAIApiKey, setActivityLevel } from '../../store/slices/userSlice';
+import { setAIProvider, setAIApiKey, setActivityLevel, clearProfile } from '../../store/slices/userSlice';
 import { COLORS, ACTIVITY_LEVELS } from '../../constants';
 import { AIProvider, ActivityLevel } from '../../types';
 import Button from '../../components/common/Button';
@@ -124,6 +124,36 @@ export default function AISettingsScreen() {
           </View>
         </TouchableOpacity>
       ))}
+
+      {/* Profile info */}
+      <Text style={[styles.sectionTitle, { marginTop: 28 }]}>Profile</Text>
+      <View style={styles.profileCard}>
+        <Text style={styles.profileName}>{profile?.name ?? '—'}</Text>
+        <Text style={styles.profileMeta}>
+          {profile?.sex ? profile.sex.charAt(0).toUpperCase() + profile.sex.slice(1) : ''}
+          {profile?.dateOfBirth ? ` · Born ${profile.dateOfBirth}` : ''}
+        </Text>
+      </View>
+      <TouchableOpacity
+        style={styles.resetBtn}
+        onPress={() =>
+          Alert.alert(
+            'Reset Profile',
+            'This will clear your profile and restart onboarding. Your workout and body data will remain.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Reset',
+                style: 'destructive',
+                onPress: () => dispatch(clearProfile()),
+              },
+            ],
+          )
+        }
+      >
+        <Ionicons name="refresh-outline" size={16} color={COLORS.danger} />
+        <Text style={styles.resetText}>Reset Profile &amp; Re-run Onboarding</Text>
+      </TouchableOpacity>
     </ScreenContainer>
   );
 }
@@ -170,4 +200,23 @@ const styles = StyleSheet.create({
   },
   eyeBtn: { padding: 10, marginLeft: 4 },
   saveBtn: { marginTop: 4, marginBottom: 4 },
+  profileCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  profileName: { color: COLORS.text, fontSize: 16, fontWeight: '700' },
+  profileMeta: { color: COLORS.textMuted, fontSize: 13, marginTop: 4 },
+  resetBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    marginBottom: 32,
+  },
+  resetText: { color: COLORS.danger, fontSize: 14 },
 });

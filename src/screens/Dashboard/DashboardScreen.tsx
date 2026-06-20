@@ -43,7 +43,9 @@ export default function DashboardScreen() {
       {/* Welcome banner */}
       <View style={styles.bannerRow}>
         <View>
-          <Text style={styles.greeting}>Welcome back</Text>
+          <Text style={styles.greeting}>
+            {userProfile?.name ? `Hey, ${userProfile.name.split(' ')[0]}` : 'Welcome back'}
+          </Text>
           <Text style={styles.tagline}>Track. Visualise. Grow.</Text>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate('AISettings')} style={styles.settingsBtn}>
