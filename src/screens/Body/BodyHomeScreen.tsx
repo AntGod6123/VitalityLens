@@ -93,6 +93,12 @@ export default function BodyHomeScreen() {
         >
           <Ionicons name="stats-chart-outline" size={20} color={COLORS.primary} />
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.chartsBtn}
+          onPress={() => navigation.navigate('GoalTracker')}
+        >
+          <Ionicons name="flag-outline" size={20} color={COLORS.secondary} />
+        </TouchableOpacity>
       </View>
 
       {!latest ? (

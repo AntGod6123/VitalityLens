@@ -9,6 +9,7 @@ import EnergyMetricsScreen from '../../screens/Body/EnergyMetricsScreen';
 import BodyFatMethodScreen from '../../screens/Body/BodyFatMethodScreen';
 import ProgressChartsScreen from '../../screens/Body/ProgressChartsScreen';
 import EnergyCoachingScreen from '../../screens/Body/EnergyCoachingScreen';
+import GoalTrackerScreen from '../../screens/Body/GoalTrackerScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,6 +30,7 @@ export default function BodyNavigator() {
       <Stack.Screen name="BodyFatMethod" component={BodyFatMethodScreen} options={{ title: 'Measure Body Fat' }} />
       <Stack.Screen name="ProgressCharts" component={ProgressChartsScreen} options={{ title: 'Progress Charts' }} />
       <Stack.Screen name="EnergyCoaching" component={EnergyCoachingScreen} options={{ title: 'AI Energy Coaching' }} />
+      <Stack.Screen name="GoalTracker" component={GoalTrackerScreen} options={{ title: 'Goal Tracker' }} />
     </Stack.Navigator>
   );
 }
