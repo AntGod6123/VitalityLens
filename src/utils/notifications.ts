@@ -71,11 +71,7 @@ async function scheduleDailyReminder(
   await Notifications.scheduleNotificationAsync({
     identifier: id,
     content: { title, body, sound: true },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour,
-      minute,
-    },
+    trigger: { hour, minute, repeats: true } as any,
   });
 }
 
@@ -91,12 +87,7 @@ async function scheduleWeeklyReminder(
   await Notifications.scheduleNotificationAsync({
     identifier: id,
     content: { title, body, sound: true },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-      weekday,
-      hour,
-      minute,
-    },
+    trigger: { weekday, hour, minute, repeats: true } as any,
   });
 }
 
