@@ -160,9 +160,12 @@ export default function BodyHomeScreen() {
           {/* History */}
           <SectionHeader
             title={`History (${measurements.length})`}
-            action={{ label: 'All Charts', onPress: () => navigation.navigate('ProgressCharts') }}
+            action={{ label: 'View All →', onPress: () => navigation.navigate('MeasurementHistory') }}
           />
-          {[...measurements].reverse().slice(0, 5).map((m) => (
+          {[...measurements]
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            .slice(0, 5)
+            .map((m) => (
             <View key={m.id} style={styles.historyRow}>
               <View style={styles.historyLeft}>
                 <Text style={styles.historyDate}>{new Date(m.date).toLocaleDateString()}</Text>
@@ -177,6 +180,14 @@ export default function BodyHomeScreen() {
               {m.ffmi ? <Text style={styles.historyVal}>FFMI {m.ffmi.toFixed(1)}</Text> : null}
             </View>
           ))}
+          {measurements.length > 5 && (
+            <TouchableOpacity
+              style={styles.viewAllRow}
+              onPress={() => navigation.navigate('MeasurementHistory')}
+            >
+              <Text style={styles.viewAllText}>View all {measurements.length} measurements →</Text>
+            </TouchableOpacity>
+          )}
         </>
       )}
     </ScreenContainer>
@@ -232,5 +243,7 @@ const styles = StyleSheet.create({
   historyDate: { color: COLORS.textMuted, fontSize: 13 },
   baselineBadge: { backgroundColor: COLORS.accent + '25', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
   baselineBadgeText: { color: COLORS.accent, fontSize: 9, fontWeight: '700', textTransform: 'uppercase' },
+  viewAllRow: { alignItems: 'center', paddingVertical: 10 },
+  viewAllText: { color: COLORS.primary, fontSize: 13, fontWeight: '600' },
   historyVal: { color: COLORS.text, fontSize: 13, fontWeight: '600' },
 });
