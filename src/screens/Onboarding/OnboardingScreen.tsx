@@ -1,6 +1,8 @@
 import React, { useRef, useState } from 'react';
 import {
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -105,7 +107,10 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <View style={styles.root}>
+    <KeyboardAvoidingView
+      style={styles.root}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       {/* Progress dots */}
       <View style={styles.progressRow}>
         {STEPS.map((_, i) => (
@@ -122,7 +127,7 @@ export default function OnboardingScreen() {
         style={{ flex: 1 }}
       >
         {/* ── Step 0: Welcome ──────────────────────────────────── */}
-        <View style={styles.page}>
+        <ScrollView style={styles.page} contentContainerStyle={styles.pageContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <View style={styles.iconCircle}>
             <Ionicons name="fitness" size={48} color={COLORS.primary} />
           </View>
@@ -146,10 +151,10 @@ export default function OnboardingScreen() {
           </View>
 
           <Button title="Get Started" onPress={next} size="lg" style={styles.btn} />
-        </View>
+        </ScrollView>
 
         {/* ── Step 1: Profile ──────────────────────────────────── */}
-        <View style={styles.page}>
+        <ScrollView style={styles.page} contentContainerStyle={styles.pageContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <Text style={styles.stepLabel}>Step 1 of 3</Text>
           <Text style={styles.title}>About You</Text>
           <Text style={styles.subtitle}>Used for BMR, body fat calculations, and AI coaching.</Text>
@@ -222,10 +227,10 @@ export default function OnboardingScreen() {
               disabled={!canProceedStep1()}
             />
           </View>
-        </View>
+        </ScrollView>
 
         {/* ── Step 2: Limb Lengths ─────────────────────────────── */}
-        <View style={styles.page}>
+        <ScrollView style={styles.page} contentContainerStyle={styles.pageContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <Text style={styles.stepLabel}>Step 2 of 3</Text>
           <Text style={styles.title}>Limb Lengths</Text>
           <Text style={styles.subtitle}>
@@ -252,10 +257,10 @@ export default function OnboardingScreen() {
             <Button title="Back" onPress={back} variant="ghost" style={styles.navBtn} />
             <Button title="Next" onPress={next} style={styles.navBtn} />
           </View>
-        </View>
+        </ScrollView>
 
         {/* ── Step 3: AI Setup ─────────────────────────────────── */}
-        <View style={styles.page}>
+        <ScrollView style={styles.page} contentContainerStyle={styles.pageContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <Text style={styles.stepLabel}>Step 3 of 3</Text>
           <Text style={styles.title}>AI Features</Text>
           <Text style={styles.subtitle}>
@@ -317,9 +322,9 @@ export default function OnboardingScreen() {
           <TouchableOpacity onPress={finish} style={styles.skipLink}>
             <Text style={styles.skipText}>Skip — I'll add AI later</Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -371,8 +376,11 @@ const styles = StyleSheet.create({
   dotActive: { backgroundColor: COLORS.primary, width: 24 },
   page: {
     width: SCREEN_W,
+  },
+  pageContent: {
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingBottom: 48,
+    flexGrow: 1,
   },
   iconCircle: {
     width: 100,
