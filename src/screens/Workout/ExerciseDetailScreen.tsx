@@ -39,17 +39,6 @@ export default function ExerciseDetailScreen() {
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Equipment</Text>
-        <View style={styles.tags}>
-          {ex.equipment.map(e => (
-            <View key={e} style={[styles.tag, styles.tagEquipment]}>
-              <Text style={[styles.tagText, styles.tagTextEquipment]}>{e}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
       {ex.instructions && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Instructions</Text>
@@ -69,7 +58,5 @@ const styles = StyleSheet.create({
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tag: { backgroundColor: COLORS.primary + '33', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
   tagText: { color: COLORS.primary, fontSize: 13, fontWeight: '600', textTransform: 'capitalize' },
-  tagEquipment: { backgroundColor: COLORS.surface },
-  tagTextEquipment: { color: COLORS.textMuted },
   instructions: { color: COLORS.text, fontSize: 15, lineHeight: 22 },
 });

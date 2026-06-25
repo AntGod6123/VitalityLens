@@ -73,9 +73,8 @@ export default function AddMeasurementScreen() {
     const ffmi = lbm ? calculateFFMI(lbm, h) : null;
     const ffmiN = lbm ? calculateNormalisedFFMI(lbm, h) : null;
     const fmi = fm ? calculateFMI(fm, h) : null;
-    const bmi = calculateBMI(w, h);
     const bmr = lbm ? katchMcArdleBMR(lbm) : null;
-    return { lbm, fm, ffmi, ffmiN, fmi, bmi, bmr };
+    return { lbm, fm, ffmi, ffmiN, fmi, bmr };
   }
 
   function saveLimbs() {
@@ -226,7 +225,6 @@ export default function AddMeasurementScreen() {
           <Text style={styles.previewTitle}>Calculated Preview</Text>
           <PreviewRow label="LBM" value={calc.lbm ? `${calc.lbm.toFixed(1)} kg` : '—'} />
           <PreviewRow label="Fat Mass" value={calc.fm ? `${calc.fm.toFixed(1)} kg` : '—'} />
-          <PreviewRow label="BMI" value={calc.bmi.toFixed(1)} note="(legacy)" />
           <PreviewRow label="FFMI" value={calc.ffmi ? calc.ffmi.toFixed(2) : '—'} />
           <PreviewRow label="FFMI (norm.)" value={calc.ffmiN ? calc.ffmiN.toFixed(2) : '—'} />
           <PreviewRow label="FMI" value={calc.fmi ? calc.fmi.toFixed(2) : '—'} />

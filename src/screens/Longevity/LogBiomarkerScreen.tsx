@@ -12,6 +12,7 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenContainer from '../../components/common/ScreenContainer';
+import DatePickerModal from '../../components/common/DatePickerModal';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { addLog } from '../../store/slices/biomarkerSlice';
@@ -48,8 +49,7 @@ export default function LogBiomarkerScreen() {
   const [type, setType] = useState<BiomarkerType>(route.params?.type ?? 'resting_hr');
   const [value, setValue] = useState('');
   const [source, setSource] = useState<Source>('manual');
-  const [notes, setNotes] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [logDate, setLogDate] = useState(new Date());
 
   const sex = userProfile?.sex ?? 'male';
   const meta = BIOMARKER_META[type];
@@ -67,10 +67,9 @@ export default function LogBiomarkerScreen() {
     }
     dispatch(addLog({
       id: `${type}_${Date.now()}`,
-      date,
+      date: logDate.toISOString().split('T')[0],
       type,
       value: numValue,
-      notes: notes.trim() || undefined,
       source,
     }));
     navigation.goBack();
@@ -135,13 +134,7 @@ export default function LogBiomarkerScreen() {
 
         {/* Date */}
         <Text style={styles.sectionLabel}>Date</Text>
-        <TextInput
-          style={styles.input}
-          value={date}
-          onChangeText={setDate}
-          placeholder="YYYY-MM-DD"
-          placeholderTextColor={COLORS.textMuted}
-        />
+        <DatePickerModal value={logDate} onChange={setLogDate} />
 
         {/* Source */}
         <Text style={styles.sectionLabel}>Source</Text>
@@ -163,17 +156,6 @@ export default function LogBiomarkerScreen() {
             </TouchableOpacity>
           ))}
         </View>
-
-        {/* Notes */}
-        <Text style={styles.sectionLabel}>Notes (optional)</Text>
-        <TextInput
-          style={[styles.input, styles.notesInput]}
-          value={notes}
-          onChangeText={setNotes}
-          placeholder="Any context about this reading..."
-          placeholderTextColor={COLORS.textMuted}
-          multiline
-        />
 
         {/* Save */}
         <TouchableOpacity

@@ -269,7 +269,6 @@ export default function WorkoutLogScreen() {
               <Text style={styles.setCol}>Target</Text>
               <Text style={styles.setCol}>Reps</Text>
               <Text style={styles.setCol}>kg</Text>
-              <Text style={styles.setCol}>RPE</Text>
               {!isReadOnly && <Text style={[styles.setCol, { flex: 0.5 }]}>✓</Text>}
             </View>
 
@@ -299,15 +298,6 @@ export default function WorkoutLogScreen() {
                     value={set.weightKg?.toString() ?? ''}
                     onChangeText={v => updateSet(exIdx, setIdx, 'weightKg', v)}
                     keyboardType="decimal-pad"
-                    placeholder="—"
-                    placeholderTextColor={COLORS.textMuted}
-                    editable={!isReadOnly}
-                  />
-                  <TextInput
-                    style={styles.setInput}
-                    value={set.rpe?.toString() ?? ''}
-                    onChangeText={v => updateSet(exIdx, setIdx, 'rpe', v)}
-                    keyboardType="numeric"
                     placeholder="—"
                     placeholderTextColor={COLORS.textMuted}
                     editable={!isReadOnly}

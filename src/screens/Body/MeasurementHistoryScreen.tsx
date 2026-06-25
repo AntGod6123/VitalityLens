@@ -22,7 +22,6 @@ import {
   calculateFatMass,
   calculateFFMI,
   calculateFMI,
-  calculateBMI,
 } from '../../utils/bodyComposition';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -42,8 +41,7 @@ function derivedStats(m: BodyMeasurement) {
   const fm = m.fatMassKg ?? (m.bodyFatPercent ? calculateFatMass(m.weightKg, m.bodyFatPercent) : null);
   const ffmi = lbm ? calculateFFMI(lbm, m.heightCm) : null;
   const fmi = fm ? calculateFMI(fm, m.heightCm) : null;
-  const bmi = calculateBMI(m.weightKg, m.heightCm);
-  return { lbm, fm, ffmi, fmi, bmi };
+  return { lbm, fm, ffmi, fmi };
 }
 
 // ─── Edit modal ──────────────────────────────────────────────────────────────
@@ -229,7 +227,7 @@ export default function MeasurementHistoryScreen() {
       <Text style={styles.count}>{sorted.length} measurement{sorted.length !== 1 ? 's' : ''}</Text>
 
       {sorted.map((m, idx) => {
-        const { lbm, fm, ffmi, fmi, bmi } = derivedStats(m);
+        const { lbm, fm, ffmi, fmi } = derivedStats(m);
         const expanded = expandedId === m.id;
         const isLatest = idx === 0;
 
@@ -238,7 +236,6 @@ export default function MeasurementHistoryScreen() {
           field('Fat mass', fm ? fm.toFixed(1) : null, ' kg'),
           field('FFMI', ffmi ? ffmi.toFixed(2) : null),
           field('FMI', fmi ? fmi.toFixed(2) : null),
-          field('BMI', bmi ? bmi.toFixed(1) : null),
           field('Waist', m.waistCm, ' cm'),
           field('Hip', m.hipCm, ' cm'),
           field('Neck', m.neckCm, ' cm'),

@@ -18,14 +18,6 @@ export default function WorkoutHomeScreen() {
     <ScreenContainer>
       {/* Quick actions */}
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('WorkoutLog')}>
-          <Ionicons name="add-circle" size={32} color={COLORS.primary} />
-          <Text style={styles.actionLabel}>Log Session</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('WorkoutBuilder')}>
-          <Ionicons name="construct" size={32} color={COLORS.secondary} />
-          <Text style={styles.actionLabel}>Build Plan</Text>
-        </TouchableOpacity>
         <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('ExerciseLibrary')}>
           <Ionicons name="list" size={32} color={COLORS.accent} />
           <Text style={styles.actionLabel}>Exercises</Text>
@@ -33,10 +25,6 @@ export default function WorkoutHomeScreen() {
         <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('MuscleGrowthProjection')}>
           <Ionicons name="trending-up" size={32} color={COLORS.warning} />
           <Text style={styles.actionLabel}>Projections</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('ProgressiveOverload')}>
-          <Ionicons name="barbell" size={32} color={COLORS.secondary} />
-          <Text style={styles.actionLabel}>Overload</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('WorkoutCritique')}>
           <Ionicons name="sparkles" size={32} color={COLORS.primary} />

@@ -15,7 +15,6 @@ import {
   calculateFMI,
   calculateLBM,
   calculateFatMass,
-  calculateBMI,
   katchMcArdleBMR,
 } from '../../utils/bodyComposition';
 import { estimateBodyCompChange, calculateFullTDEE } from '../../utils/energyExpenditure';
@@ -36,7 +35,6 @@ export default function BodyHomeScreen() {
     : null;
   const ffmi = latest && lbm ? calculateFFMI(lbm, latest.heightCm) : null;
   const fmi = latest && fm ? calculateFMI(fm, latest.heightCm) : null;
-  const bmi = latest ? calculateBMI(latest.weightKg, latest.heightCm) : null;
   const bmr = lbm ? katchMcArdleBMR(lbm) : null;
 
   // Between-baseline body comp estimation
@@ -121,7 +119,6 @@ export default function BodyHomeScreen() {
             <MetricCard label="LBM" value={lbm ? lbm.toFixed(1) : '—'} unit="kg" subtitle="Lean Body Mass" accentColor={COLORS.primary} style={styles.gridItem} />
             <MetricCard label="Fat Mass" value={fm ? fm.toFixed(1) : '—'} unit="kg" accentColor={COLORS.accent} style={styles.gridItem} />
             <MetricCard label="BMR" value={bmr ? Math.round(bmr) : '—'} unit="kcal" subtitle="Katch-McArdle" accentColor={COLORS.secondary} style={styles.gridItem} onPress={() => navigation.navigate('EnergyMetrics')} />
-            <MetricCard label="BMI" value={bmi ? bmi.toFixed(1) : '—'} subtitle="Legacy reference" accentColor={COLORS.textMuted} style={styles.gridItem} />
           </View>
 
           {/* Estimated body comp */}
