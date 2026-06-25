@@ -11,6 +11,7 @@ import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppSelector } from '../../hooks/useAppSelector';
+import { useUnits } from '../../hooks/useUnits';
 import { COLORS } from '../../constants';
 import { naturalLBMCeiling, caseyButtPotential, calculateLBM } from '../../utils/bodyComposition';
 import { MuscleGroup } from '../../types';
@@ -49,6 +50,7 @@ export default function MuscleGrowthScreen() {
   const latest = useAppSelector(s => s.body.latestMeasurement);
   const sessions = useAppSelector(s => s.workout.sessions);
   const userProfile = useAppSelector(s => s.user.profile);
+  const { weightUnit, displayWeight: displayWt } = useUnits();
   const [tab, setTab] = useState<Tab>('potential');
 
   const lbm = latest
@@ -155,10 +157,10 @@ export default function MuscleGrowthScreen() {
           ) : (
             <>
               <View style={styles.potCard}>
-                <PotRow label="Current LBM" value={`${lbm.toFixed(1)} kg`} />
-                <PotRow label="Natural ceiling (Berkhan)" value={`${naturalCeiling!.toFixed(1)} kg`} />
+                <PotRow label="Current LBM" value={`${displayWt(lbm).toFixed(1)} ${weightUnit}`} />
+                <PotRow label="Natural ceiling (Berkhan)" value={`${displayWt(naturalCeiling!).toFixed(1)} ${weightUnit}`} />
                 {caseyButtCeiling && (
-                  <PotRow label="Casey Butt ceiling" value={`${caseyButtCeiling.toFixed(1)} kg`} note="wrist/ankle" />
+                  <PotRow label="Casey Butt ceiling" value={`${displayWt(caseyButtCeiling).toFixed(1)} ${weightUnit}`} note="wrist/ankle" />
                 )}
                 <PotRow
                   label="% of potential"
@@ -168,7 +170,7 @@ export default function MuscleGrowthScreen() {
                 <View style={styles.barTrack}>
                   <View style={[styles.barFill, { width: `${pctOfPotential}%` }]} />
                 </View>
-                <PotRow label="Est. monthly gain rate" value={`~${monthlyGainRate!.toFixed(2)} kg/mo`} />
+                <PotRow label="Est. monthly gain rate" value={`~${displayWt(monthlyGainRate!).toFixed(2)} ${weightUnit}/mo`} />
                 <PotRow label="Months to natural ceiling" value={monthsToNatCeiling ? `${monthsToNatCeiling} months` : '—'} />
               </View>
 
@@ -185,7 +187,7 @@ export default function MuscleGrowthScreen() {
                     <View style={styles.muscleInfo}>
                       <Text style={styles.muscleName}>{cfg.label}</Text>
                       <Text style={styles.muscleVals}>
-                        {current.toFixed(1)} / {ceiling.toFixed(1)} kg
+                        {displayWt(current).toFixed(1)} / {displayWt(ceiling).toFixed(1)} {weightUnit}
                       </Text>
                     </View>
                     <View style={styles.muscleBar}>

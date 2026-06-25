@@ -17,6 +17,7 @@ import { useAppSelector } from '../../hooks/useAppSelector';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { addGoal, deleteGoal, completeGoal } from '../../store/slices/goalSlice';
 import { COLORS } from '../../constants';
+import { useUnits } from '../../hooks/useUnits';
 import { Goal, GoalType } from '../../types';
 import { calculateLBM, calculateFatMass } from '../../utils/bodyComposition';
 
@@ -39,6 +40,7 @@ const GOAL_META: Record<GoalType, GoalMeta> = {
 };
 
 const GOAL_TYPE_ORDER: GoalType[] = ['body_fat', 'muscle_gain', 'strength', 'endurance'];
+const WEIGHT_GOAL_TYPES = new Set<GoalType>(['muscle_gain', 'strength']);
 
 const COMMON_LIFTS = [
   'Squat', 'Bench Press', 'Deadlift', 'Overhead Press',
@@ -125,6 +127,7 @@ function useAutoComplete(goals: Goal[], currentValues: Record<GoalType, number |
 export default function GoalTrackerScreen() {
   const dispatch = useAppDispatch();
   const goals = useAppSelector(s => s.goal.goals);
+  const { weightUnit, displayWeight: displayWt, toKg } = useUnits();
 
   const [adding, setAdding] = useState(false);
   const [selectedType, setSelectedType] = useState<GoalType>('body_fat');
@@ -162,17 +165,18 @@ export default function GoalTrackerScreen() {
       ? formCurrentValues.strength
       : formCurrentValues[selectedType];
     const currentVal = currentOverride.trim()
-      ? parseFloat(currentOverride)
-      : (autoVal ?? target);
+      ? (WEIGHT_GOAL_TYPES.has(selectedType) ? toKg(parseFloat(currentOverride)) : parseFloat(currentOverride))
+      : (autoVal ?? (WEIGHT_GOAL_TYPES.has(selectedType) ? toKg(target) : target));
 
     const title = titleOverride.trim() ||
       (selectedType === 'strength' && exerciseName.trim() ? `${exerciseName} 1RM` : meta.label);
 
+    const targetKg = WEIGHT_GOAL_TYPES.has(selectedType) ? toKg(target) : target;
     const goal: Goal = {
       id: `goal-${Date.now()}`,
       type: selectedType,
       title,
-      targetValue: target,
+      targetValue: targetKg,
       currentValue: currentVal,
       unit: meta.unit,
       targetDate: targetDate?.toISOString().split('T')[0],
@@ -276,7 +280,7 @@ export default function GoalTrackerScreen() {
 
           {/* Target */}
           <Text style={styles.fieldLabel}>
-            Target Value ({selectedMeta.unit})
+            Target Value ({WEIGHT_GOAL_TYPES.has(selectedType) ? weightUnit : selectedMeta.unit})
           </Text>
           <TextInput
             style={styles.input}
@@ -291,7 +295,7 @@ export default function GoalTrackerScreen() {
           <Text style={styles.fieldLabel}>
             Starting Value
             {autoCurrentForSelected != null
-              ? ` (auto: ${autoCurrentForSelected.toFixed(1)} ${selectedMeta.unit})`
+              ? ` (auto: ${(WEIGHT_GOAL_TYPES.has(selectedType) ? displayWt(autoCurrentForSelected) : autoCurrentForSelected).toFixed(1)} ${WEIGHT_GOAL_TYPES.has(selectedType) ? weightUnit : selectedMeta.unit})`
               : ' (optional override)'}
           </Text>
           <TextInput
@@ -359,9 +363,13 @@ export default function GoalTrackerScreen() {
 
 function GoalCard({ goal, onDelete }: { goal: Goal; onDelete: () => void }) {
   const liveValues = useCurrentValues(goal.exerciseName);
+  const { weightUnit, displayWeight: displayWt } = useUnits();
   const meta = GOAL_META[goal.type] ?? GOAL_META.body_fat;
+  const isWeightGoal = WEIGHT_GOAL_TYPES.has(goal.type);
+  const displayUnit = isWeightGoal ? weightUnit : meta.unit;
   const live = goal.type === 'strength' ? liveValues.strength : liveValues[goal.type];
   const current = live ?? goal.currentValue;
+  const fmt = (v: number) => isWeightGoal ? displayWt(v).toFixed(1) : v.toFixed(1);
   const pct = progressPct(current, goal.targetValue, goal.currentValue, meta.higherIsBetter);
   const achieved = isAchieved(current, goal.targetValue, meta.higherIsBetter);
 
@@ -405,14 +413,14 @@ function GoalCard({ goal, onDelete }: { goal: Goal; onDelete: () => void }) {
       <View style={styles.valuesRow}>
         <View style={styles.valueItem}>
           <Text style={[styles.valueNum, { color: meta.color }]}>
-            {current.toFixed(1)}{meta.unit}
+            {fmt(current)}{displayUnit}
           </Text>
           <Text style={styles.valueLabel}>{live != null ? 'Live' : 'Starting'}</Text>
         </View>
         <Ionicons name="arrow-forward" size={16} color={COLORS.textMuted} style={{ marginHorizontal: 8 }} />
         <View style={styles.valueItem}>
           <Text style={[styles.valueNum, { color: COLORS.text }]}>
-            {goal.targetValue.toFixed(1)}{meta.unit}
+            {fmt(goal.targetValue)}{displayUnit}
           </Text>
           <Text style={styles.valueLabel}>Target</Text>
         </View>
@@ -427,7 +435,7 @@ function GoalCard({ goal, onDelete }: { goal: Goal; onDelete: () => void }) {
       </View>
 
       {live != null && (
-        <Text style={styles.liveHint}>Live from logs · Started at {goal.currentValue.toFixed(1)}{meta.unit}</Text>
+        <Text style={styles.liveHint}>Live from logs · Started at {fmt(goal.currentValue)}{displayUnit}</Text>
       )}
 
       {/* Actions */}

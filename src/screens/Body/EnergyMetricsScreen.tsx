@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ScreenContainer from '../../components/common/ScreenContainer';
 import MetricCard from '../../components/common/MetricCard';
 import { useAppSelector } from '../../hooks/useAppSelector';
+import { useUnits } from '../../hooks/useUnits';
 import { COLORS, ACTIVITY_LEVELS } from '../../constants';
 import {
   katchMcArdleBMR,
@@ -19,6 +20,7 @@ export default function EnergyMetricsScreen() {
   const navigation = useNavigation<any>();
   const latest = useAppSelector(s => s.body.latestMeasurement);
   const userProfile = useAppSelector(s => s.user.profile);
+  const { weightUnit, displayWeight: displayWt } = useUnits();
   const sessions = useAppSelector(s => s.workout.sessions);
 
   const activityLevel = userProfile?.activityLevel ?? 'moderately_active';
@@ -116,7 +118,7 @@ export default function EnergyMetricsScreen() {
           <View style={styles.proteinCard}>
             <Text style={styles.proteinLabel}>Daily Protein Target</Text>
             <Text style={styles.proteinValue}>{protein} g</Text>
-            <Text style={styles.proteinNote}>2.2 g × {lbm.toFixed(1)} kg LBM</Text>
+            <Text style={styles.proteinNote}>2.2 g × {displayWt(lbm).toFixed(1)} {weightUnit} LBM</Text>
           </View>
 
           <View style={styles.infoBox}>

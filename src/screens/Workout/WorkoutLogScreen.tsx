@@ -19,6 +19,7 @@ import { calculateSessionEnergy } from '../../utils/energyExpenditure';
 import { EXERCISE_DB } from '../../constants/exercises';
 import Button from '../../components/common/Button';
 import ScreenContainer from '../../components/common/ScreenContainer';
+import { useUnits } from '../../hooks/useUnits';
 
 const DEFAULT_REST_SECONDS = 90;
 
@@ -28,9 +29,13 @@ export default function WorkoutLogScreen() {
   const dispatch = useAppDispatch();
   const sessions = useAppSelector(s => s.workout.sessions);
   const userProfile = useAppSelector(s => s.user.profile);
-  const restrictedExerciseIds = useAppSelector(s =>
-    s.medical.injuries.filter(i => i.isActive).flatMap(i => i.restrictedExerciseIds ?? [])
+  const allInjuries = useAppSelector(s => s.medical.injuries);
+  const restrictedExerciseIds = useMemo(
+    () => allInjuries.filter(i => i.isActive).flatMap(i => i.restrictedExerciseIds ?? []),
+    [allInjuries],
   );
+  const { weightUnit, displayWeight: displayWt, toKg, isImperial } = useUnits();
+  const weightStep = isImperial ? toKg(2.5) : 2.5;
 
   const existingSession = route.params?.sessionId
     ? sessions.find(s => s.id === route.params.sessionId)
@@ -271,8 +276,11 @@ export default function WorkoutLogScreen() {
                         onAdjustWeight={delta => adjustWeight(exIdx, setIdx, delta)}
                         onComplete={() => completeSet(exIdx, setIdx)}
                         onToggleWarmup={() => toggleWarmup(exIdx, setIdx)}
-                        onWeightChange={v => updateSetField(exIdx, setIdx, 'weightKg', v === '' ? undefined : Number(v))}
+                        onWeightChange={v => updateSetField(exIdx, setIdx, 'weightKg', v === '' ? undefined : toKg(Number(v)))}
                         onRepsChange={v => updateSetField(exIdx, setIdx, 'reps', v === '' ? undefined : Number(v))}
+                        weightUnit={weightUnit}
+                        toDisplayWeight={displayWt}
+                        weightStep={weightStep}
                       />
                     );
                   })}
@@ -331,16 +339,19 @@ interface SetRowProps {
   onToggleWarmup: () => void;
   onWeightChange: (v: string) => void;
   onRepsChange: (v: string) => void;
+  weightUnit: string;
+  toDisplayWeight: (kg: number) => number;
+  weightStep: number;
 }
 
 function SetRow({
   set, setIdx, isCurrent, isDone, isReadOnly,
   onAdjustReps, onAdjustWeight, onComplete, onToggleWarmup,
-  onWeightChange, onRepsChange,
+  onWeightChange, onRepsChange, weightUnit, toDisplayWeight, weightStep,
 }: SetRowProps) {
   const targetReps = set.targetReps ?? 0;
   const displayReps = set.reps ?? targetReps;
-  const displayWeight = set.weightKg ?? set.targetWeightKg ?? 0;
+  const displayWeight = toDisplayWeight(set.weightKg ?? set.targetWeightKg ?? 0);
 
   return (
     <View style={[styles.setRow, isCurrent && styles.setRowCurrent, isDone && styles.setRowDone]}>
@@ -358,21 +369,21 @@ function SetRow({
       {/* Weight control */}
       <View style={styles.adjGroup}>
         {!isReadOnly && (
-          <TouchableOpacity style={styles.adjBtn} onPress={() => onAdjustWeight(-2.5)}>
+          <TouchableOpacity style={styles.adjBtn} onPress={() => onAdjustWeight(-weightStep)}>
             <Ionicons name="remove" size={16} color={COLORS.textMuted} />
           </TouchableOpacity>
         )}
         <TextInput
           style={styles.adjInput}
-          value={displayWeight > 0 ? displayWeight.toString() : ''}
+          value={displayWeight > 0 ? displayWeight.toFixed(1) : ''}
           onChangeText={onWeightChange}
           keyboardType="decimal-pad"
-          placeholder="kg"
+          placeholder={weightUnit}
           placeholderTextColor={COLORS.textMuted}
           editable={!isReadOnly}
         />
         {!isReadOnly && (
-          <TouchableOpacity style={styles.adjBtn} onPress={() => onAdjustWeight(2.5)}>
+          <TouchableOpacity style={styles.adjBtn} onPress={() => onAdjustWeight(weightStep)}>
             <Ionicons name="add" size={16} color={COLORS.textMuted} />
           </TouchableOpacity>
         )}

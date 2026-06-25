@@ -9,6 +9,7 @@ import { addMeasurement } from '../../store/slices/bodySlice';
 import { updateLimbs } from '../../store/slices/userSlice';
 import { BodyMeasurement, BodyFatMethod, LimbLengths } from '../../types';
 import { COLORS } from '../../constants';
+import { useUnits } from '../../hooks/useUnits';
 import { BF_METHOD_LABELS } from '../../utils/bodyFatMethods';
 import {
   calculateLBM,
@@ -27,6 +28,7 @@ export default function AddMeasurementScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const userProfile = useAppSelector(s => s.user.profile);
+  const { weightUnit, heightUnit, displayWeight: displayWt, displayHeight, toKg, toCm, isImperial } = useUnits();
   const sex = userProfile?.sex ?? 'male';
   const ageYears = userProfile?.dateOfBirth
     ? Math.floor((Date.now() - new Date(userProfile.dateOfBirth).getTime()) / (365.25 * 24 * 3600 * 1000))
@@ -64,10 +66,12 @@ export default function AddMeasurementScreen() {
   }, [route.params?.bodyFatPercent, route.params?.bodyFatMethod]);
 
   function preview() {
-    const w = parseFloat(weight);
-    const h = parseFloat(height);
+    const wRaw = parseFloat(weight);
+    const hRaw = parseFloat(height);
     const bf = parseFloat(bodyFat);
-    if (!w || !h) return null;
+    if (!wRaw || !hRaw) return null;
+    const w = toKg(wRaw);
+    const h = toCm(hRaw);
     const lbm = bf ? calculateLBM(w, bf) : null;
     const fm = bf ? calculateFatMass(w, bf) : null;
     const ffmi = lbm ? calculateFFMI(lbm, h) : null;
@@ -91,10 +95,12 @@ export default function AddMeasurementScreen() {
   }
 
   function save() {
-    const w = parseFloat(weight);
-    const h = parseFloat(height);
-    if (!w || w <= 0) { Alert.alert('Invalid', 'Enter a valid weight.'); return; }
-    if (!h || h <= 0) { Alert.alert('Invalid', 'Enter a valid height.'); return; }
+    const wRaw = parseFloat(weight);
+    const hRaw = parseFloat(height);
+    if (!wRaw || wRaw <= 0) { Alert.alert('Invalid', 'Enter a valid weight.'); return; }
+    if (!hRaw || hRaw <= 0) { Alert.alert('Invalid', 'Enter a valid height.'); return; }
+    const w = toKg(wRaw);
+    const h = toCm(hRaw);
 
     const bf = parseFloat(bodyFat) || undefined;
     const lbm = bf ? calculateLBM(w, bf) : undefined;
@@ -132,8 +138,8 @@ export default function AddMeasurementScreen() {
   return (
     <ScreenContainer>
       <Text style={styles.section}>Required</Text>
-      <CustomTextInput label="Weight" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" placeholder="80.5" suffix="kg" />
-      <CustomTextInput label="Height" value={height} onChangeText={setHeight} keyboardType="decimal-pad" placeholder="178" suffix="cm" />
+      <CustomTextInput label="Weight" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" placeholder={isImperial ? '177' : '80.5'} suffix={weightUnit} />
+      <CustomTextInput label="Height" value={height} onChangeText={setHeight} keyboardType="decimal-pad" placeholder={isImperial ? '70' : '178'} suffix={heightUnit} />
 
       <Text style={styles.section}>Body Fat</Text>
       {/* Method selector */}
@@ -223,8 +229,8 @@ export default function AddMeasurementScreen() {
       {calc && (
         <View style={styles.preview}>
           <Text style={styles.previewTitle}>Calculated Preview</Text>
-          <PreviewRow label="LBM" value={calc.lbm ? `${calc.lbm.toFixed(1)} kg` : '—'} />
-          <PreviewRow label="Fat Mass" value={calc.fm ? `${calc.fm.toFixed(1)} kg` : '—'} />
+          <PreviewRow label="LBM" value={calc.lbm ? `${displayWt(calc.lbm).toFixed(1)} ${weightUnit}` : '—'} />
+          <PreviewRow label="Fat Mass" value={calc.fm ? `${displayWt(calc.fm).toFixed(1)} ${weightUnit}` : '—'} />
           <PreviewRow label="FFMI" value={calc.ffmi ? calc.ffmi.toFixed(2) : '—'} />
           <PreviewRow label="FFMI (norm.)" value={calc.ffmiN ? calc.ffmiN.toFixed(2) : '—'} />
           <PreviewRow label="FMI" value={calc.fmi ? calc.fmi.toFixed(2) : '—'} />

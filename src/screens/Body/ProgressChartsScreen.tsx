@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAppSelector } from '../../hooks/useAppSelector';
+import { useUnits } from '../../hooks/useUnits';
 import { COLORS } from '../../constants';
 import LineChart, { ChartPoint, ChartSeries } from '../../components/charts/LineChart';
 import {
@@ -141,6 +142,7 @@ function SummaryStats({ points, unit, color, metricKey }: {
 function BodyTab() {
   const measurements = useAppSelector(s => s.body.measurements);
   const sessions = useAppSelector(s => s.workout.sessions);
+  const { weightUnit, displayWeight: displayWt } = useUnits();
 
   const [activeMetric, setActiveMetric] = useState<BodyMetric>('weight');
   const [range, setRange] = useState<TimeRange>('3M');
@@ -184,7 +186,10 @@ function BodyTab() {
     };
   }, [sorted, sessions]);
 
+  const weightMetrics = new Set<BodyMetric>(['weight', 'lbm', 'fm']);
+
   const buildPoints = (metric: BodyMetric): ChartPoint[] => {
+    const convert = weightMetrics.has(metric) ? displayWt : (v: number) => v;
     const pts: ChartPoint[] = sorted
       .map(m => {
         const lbm = m.leanBodyMassKg ?? (m.bodyFatPercent ? calculateLBM(m.weightKg, m.bodyFatPercent) : null);
@@ -199,18 +204,22 @@ function BodyTab() {
         };
         const v = vals[metric];
         if (v === null) return null;
-        return { x: new Date(m.date).getTime(), y: v };
+        return { x: new Date(m.date).getTime(), y: convert(v) };
       })
       .filter((p): p is ChartPoint => p !== null);
 
     if (estimatedPoint) {
       const ev: Record<BodyMetric, number> = estimatedPoint as any;
-      pts.push({ x: estimatedPoint.timestamp, y: ev[metric], estimated: true });
+      pts.push({ x: estimatedPoint.timestamp, y: convert(ev[metric]), estimated: true });
     }
     return pts;
   };
 
-  const cfg = BODY_METRIC_CONFIG[activeMetric];
+  const cfgBase = BODY_METRIC_CONFIG[activeMetric];
+  const cfg = {
+    ...cfgBase,
+    unit: weightMetrics.has(activeMetric) ? weightUnit : cfgBase.unit,
+  };
   const mainPoints = buildPoints(activeMetric);
 
   return (
@@ -218,16 +227,19 @@ function BodyTab() {
       {/* Metric chips */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
         {(Object.entries(BODY_METRIC_CONFIG) as [BodyMetric, typeof BODY_METRIC_CONFIG[BodyMetric]][]).map(
-          ([key, c]) => (
-            <TouchableOpacity
-              key={key}
-              style={[styles.metricChip, activeMetric === key && styles.metricChipActive, { borderColor: c.color + '80' }]}
-              onPress={() => setActiveMetric(key)}
-            >
-              <Text style={[styles.metricChipText, activeMetric === key && { color: c.color }]}>{c.label}</Text>
-              {c.unit ? <Text style={[styles.metricChipUnit, activeMetric === key && { color: c.color + 'aa' }]}>{c.unit}</Text> : null}
-            </TouchableOpacity>
-          ),
+          ([key, c]) => {
+            const chipUnit = weightMetrics.has(key as BodyMetric) ? weightUnit : c.unit;
+            return (
+              <TouchableOpacity
+                key={key}
+                style={[styles.metricChip, activeMetric === key && styles.metricChipActive, { borderColor: c.color + '80' }]}
+                onPress={() => setActiveMetric(key as BodyMetric)}
+              >
+                <Text style={[styles.metricChipText, activeMetric === key && { color: c.color }]}>{c.label}</Text>
+                {chipUnit ? <Text style={[styles.metricChipUnit, activeMetric === key && { color: c.color + 'aa' }]}>{chipUnit}</Text> : null}
+              </TouchableOpacity>
+            );
+          },
         )}
       </ScrollView>
 

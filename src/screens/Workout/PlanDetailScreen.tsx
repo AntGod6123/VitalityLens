@@ -7,6 +7,7 @@ import Button from '../../components/common/Button';
 import DatePickerModal from '../../components/common/DatePickerModal';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
+import { useUnits } from '../../hooks/useUnits';
 import { activatePlan } from '../../store/slices/planSlice';
 import { COLORS } from '../../constants';
 import { PlannedDay, PlannedExercise } from '../../types';
@@ -27,6 +28,7 @@ export default function PlanDetailScreen() {
 
   const plan = useAppSelector(s => s.plan.plans.find(p => p.id === planId));
   const sessions = useAppSelector(s => s.workout.sessions);
+  const { weightUnit, displayWeight: displayWt } = useUnits();
 
   const overloadTargets = useMemo(() => computeOverloadTargets(sessions), [sessions]);
   const overloadMap = useMemo(
@@ -154,6 +156,8 @@ export default function PlanDetailScreen() {
           dayNumber={idx + 1}
           isToday={idx === todayDayIndex}
           overloadMap={overloadMap}
+          displayWt={displayWt}
+          weightUnit={weightUnit}
         />
       ))}
     </ScreenContainer>
@@ -165,11 +169,15 @@ function DayCard({
   dayNumber,
   isToday,
   overloadMap,
+  displayWt,
+  weightUnit,
 }: {
   day: PlannedDay;
   dayNumber: number;
   isToday: boolean;
   overloadMap: Map<string, { nextWeightKg: number; lastWeightKg: number; thresholdMet: boolean }>;
+  displayWt: (kg: number) => number;
+  weightUnit: string;
 }) {
   return (
     <View style={[styles.dayCard, isToday && styles.dayCardToday]}>
@@ -189,7 +197,7 @@ function DayCard({
       </View>
 
       {!day.isRest && day.exercises.map(ex => (
-        <ExerciseRow key={ex.exerciseId} ex={ex} overloadMap={overloadMap} />
+        <ExerciseRow key={ex.exerciseId} ex={ex} overloadMap={overloadMap} displayWt={displayWt} weightUnit={weightUnit} />
       ))}
     </View>
   );
@@ -198,9 +206,13 @@ function DayCard({
 function ExerciseRow({
   ex,
   overloadMap,
+  displayWt,
+  weightUnit,
 }: {
   ex: PlannedExercise;
   overloadMap: Map<string, { nextWeightKg: number; lastWeightKg: number; thresholdMet: boolean }>;
+  displayWt: (kg: number) => number;
+  weightUnit: string;
 }) {
   const overload = overloadMap.get(ex.exerciseId);
   const suggestedWeight = overload?.thresholdMet
@@ -221,7 +233,7 @@ function ExerciseRow({
         <View style={[styles.weightBadge, overload?.thresholdMet && styles.weightBadgeUp]}>
           {overload?.thresholdMet && <Ionicons name="arrow-up" size={10} color={COLORS.secondary} />}
           <Text style={[styles.weightText, overload?.thresholdMet && styles.weightTextUp]}>
-            {suggestedWeight.toFixed(1)} kg
+            {displayWt(suggestedWeight).toFixed(1)} {weightUnit}
           </Text>
         </View>
       )}

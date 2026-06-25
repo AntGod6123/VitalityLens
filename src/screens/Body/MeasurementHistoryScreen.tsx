@@ -17,6 +17,7 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useAppSelector';
 import { deleteMeasurement, updateMeasurement } from '../../store/slices/bodySlice';
 import { BodyMeasurement } from '../../types';
 import { COLORS } from '../../constants';
+import { useUnits } from '../../hooks/useUnits';
 import {
   calculateLBM,
   calculateFatMass,
@@ -55,7 +56,8 @@ function EditModal({
   onSave: (updated: BodyMeasurement) => void;
   onClose: () => void;
 }) {
-  const [weight, setWeight] = useState(measurement.weightKg.toString());
+  const { weightUnit, displayWeight: displayWt, toKg } = useUnits();
+  const [weight, setWeight] = useState(displayWt(measurement.weightKg).toString());
   const [bodyFat, setBodyFat] = useState(measurement.bodyFatPercent?.toString() ?? '');
   const [waist, setWaist] = useState(measurement.waistCm?.toString() ?? '');
   const [hip, setHip] = useState(measurement.hipCm?.toString() ?? '');
@@ -67,11 +69,12 @@ function EditModal({
   const [isBaseline, setIsBaseline] = useState(measurement.isBaseline ?? false);
 
   function handleSave() {
-    const wkg = parseFloat(weight);
-    if (!weight || isNaN(wkg) || wkg < 20 || wkg > 300) {
-      Alert.alert('Invalid weight', 'Enter a valid weight in kg (20–300).');
+    const wRaw = parseFloat(weight);
+    if (!weight || isNaN(wRaw) || wRaw <= 0) {
+      Alert.alert('Invalid weight', `Enter a valid weight in ${weightUnit}.`);
       return;
     }
+    const wkg = toKg(wRaw);
     const bf = bodyFat ? parseFloat(bodyFat) : undefined;
     const lbm = bf != null ? calculateLBM(wkg, bf) : measurement.leanBodyMassKg;
     const fm = bf != null ? calculateFatMass(wkg, bf) : measurement.fatMassKg;
@@ -109,7 +112,7 @@ function EditModal({
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
           <Text style={modal.date}>{fmtDate(measurement.date)}</Text>
 
-          <Label text="Weight (kg) *" />
+          <Label text={`Weight (${weightUnit}) *`} />
           <Field value={weight} onChangeText={setWeight} placeholder="e.g. 80.5" keyboardType="decimal-pad" />
 
           <Label text="Body Fat %" />
@@ -187,6 +190,7 @@ function Field({
 export default function MeasurementHistoryScreen() {
   const dispatch = useAppDispatch();
   const measurements = useAppSelector(s => s.body.measurements);
+  const { weightUnit, displayWeight: displayWt } = useUnits();
   const [editing, setEditing] = useState<BodyMeasurement | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -232,8 +236,8 @@ export default function MeasurementHistoryScreen() {
         const isLatest = idx === 0;
 
         const detailFields = [
-          field('LBM', lbm ? lbm.toFixed(1) : null, ' kg'),
-          field('Fat mass', fm ? fm.toFixed(1) : null, ' kg'),
+          field('LBM', lbm ? displayWt(lbm).toFixed(1) : null, ` ${weightUnit}`),
+          field('Fat mass', fm ? displayWt(fm).toFixed(1) : null, ` ${weightUnit}`),
           field('FFMI', ffmi ? ffmi.toFixed(2) : null),
           field('FMI', fmi ? fmi.toFixed(2) : null),
           field('Waist', m.waistCm, ' cm'),
@@ -260,7 +264,7 @@ export default function MeasurementHistoryScreen() {
                   {m.isBaseline && <View style={styles.baselineBadge}><Text style={styles.baselineBadgeText}>baseline</Text></View>}
                 </View>
                 <View style={styles.statsRow}>
-                  <Text style={styles.statMain}>{m.weightKg} kg</Text>
+                  <Text style={styles.statMain}>{displayWt(m.weightKg)} {weightUnit}</Text>
                   {m.bodyFatPercent != null && (
                     <Text style={styles.statSub}>{m.bodyFatPercent}% BF</Text>
                   )}

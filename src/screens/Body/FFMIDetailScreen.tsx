@@ -3,11 +3,13 @@ import { StyleSheet, Text, View } from 'react-native';
 import ScreenContainer from '../../components/common/ScreenContainer';
 import GaugeBar from '../../components/charts/GaugeBar';
 import { useAppSelector } from '../../hooks/useAppSelector';
+import { useUnits } from '../../hooks/useUnits';
 import { COLORS, FFMI_BANDS } from '../../constants';
 import { calculateFFMI, calculateNormalisedFFMI, calculateLBM, naturalLBMCeiling } from '../../utils/bodyComposition';
 
 export default function FFMIDetailScreen() {
   const latest = useAppSelector(s => s.body.latestMeasurement);
+  const { weightUnit, displayWeight: displayWt, displayHeight, heightUnit } = useUnits();
   const lbm = latest
     ? (latest.leanBodyMassKg ?? (latest.bodyFatPercent ? calculateLBM(latest.weightKg, latest.bodyFatPercent) : null))
     : null;
@@ -35,9 +37,9 @@ export default function FFMIDetailScreen() {
           <View style={styles.card}>
             <Row label="FFMI" value={ffmi.toFixed(2)} color={activeBand?.color ?? COLORS.text} />
             <Row label="Normalised FFMI" value={ffmiN?.toFixed(2) ?? '—'} />
-            <Row label="LBM" value={lbm ? `${lbm.toFixed(1)} kg` : '—'} />
-            <Row label="Height" value={latest ? `${latest.heightCm} cm` : '—'} />
-            <Row label="Natural Ceiling LBM" value={ceiling ? `${ceiling.toFixed(0)} kg` : '—'} />
+            <Row label="LBM" value={lbm ? `${displayWt(lbm).toFixed(1)} ${weightUnit}` : '—'} />
+            <Row label="Height" value={latest ? `${displayHeight(latest.heightCm).toFixed(1)} ${heightUnit}` : '—'} />
+            <Row label="Natural Ceiling LBM" value={ceiling ? `${displayWt(ceiling).toFixed(0)} ${weightUnit}` : '—'} />
             <Row label="Ceiling FFMI" value={ceilingFFMI ? ceilingFFMI.toFixed(1) : '—'} />
           </View>
 

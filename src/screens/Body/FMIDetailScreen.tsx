@@ -3,11 +3,13 @@ import { StyleSheet, Text, View } from 'react-native';
 import ScreenContainer from '../../components/common/ScreenContainer';
 import GaugeBar from '../../components/charts/GaugeBar';
 import { useAppSelector } from '../../hooks/useAppSelector';
+import { useUnits } from '../../hooks/useUnits';
 import { COLORS, FMI_BANDS } from '../../constants';
 import { calculateFMI, calculateFatMass } from '../../utils/bodyComposition';
 
 export default function FMIDetailScreen() {
   const latest = useAppSelector(s => s.body.latestMeasurement);
+  const { weightUnit, displayWeight: displayWt } = useUnits();
   const fm = latest
     ? (latest.fatMassKg ?? (latest.bodyFatPercent ? calculateFatMass(latest.weightKg, latest.bodyFatPercent) : null))
     : null;
@@ -35,7 +37,7 @@ export default function FMIDetailScreen() {
         <>
           <View style={styles.card}>
             <Row label="FMI" value={fmi.toFixed(2)} color={bandColors[bands.findIndex(b => fmi <= b.max)]} />
-            <Row label="Fat Mass" value={fm ? `${fm.toFixed(1)} kg` : '—'} />
+            <Row label="Fat Mass" value={fm ? `${displayWt(fm).toFixed(1)} ${weightUnit}` : '—'} />
             <Row label="Category" value={activeBand?.label ?? '—'} />
           </View>
 

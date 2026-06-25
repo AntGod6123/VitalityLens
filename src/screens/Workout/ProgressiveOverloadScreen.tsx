@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ScreenContainer from '../../components/common/ScreenContainer';
 import EmptyState from '../../components/common/EmptyState';
 import { useAppSelector } from '../../hooks/useAppSelector';
+import { useUnits } from '../../hooks/useUnits';
 import { COLORS } from '../../constants';
 import {
   computeOverloadTargets,
@@ -21,6 +22,7 @@ type Filter = 'all' | 'ready' | 'incomplete';
 
 export default function ProgressiveOverloadScreen() {
   const sessions = useAppSelector(s => s.workout.sessions);
+  const { weightUnit, displayWeight: displayWt } = useUnits();
   const [filter, setFilter] = useState<Filter>('all');
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -89,6 +91,8 @@ export default function ProgressiveOverloadScreen() {
           item={item}
           isExpanded={expanded === item.exerciseId}
           onToggle={() => setExpanded(expanded === item.exerciseId ? null : item.exerciseId)}
+          displayWt={displayWt}
+          weightUnit={weightUnit}
         />
       ))}
 
@@ -105,10 +109,14 @@ function ExerciseCard({
   item,
   isExpanded,
   onToggle,
+  displayWt,
+  weightUnit,
 }: {
   item: ExerciseOverloadResult;
   isExpanded: boolean;
   onToggle: () => void;
+  displayWt: (kg: number) => number;
+  weightUnit: string;
 }) {
   const pct = Math.round(item.completionRate * 100);
   const barColor = item.thresholdMet ? COLORS.success : item.completionRate >= 0.8 ? COLORS.warning : COLORS.danger;
@@ -131,7 +139,7 @@ function ExerciseCard({
           {item.thresholdMet ? (
             <View style={styles.readyBadge}>
               <Ionicons name="arrow-up-circle" size={14} color={COLORS.success} />
-              <Text style={styles.readyText}>+{item.incrementKg} kg</Text>
+              <Text style={styles.readyText}>+{displayWt(item.incrementKg).toFixed(1)} {weightUnit}</Text>
             </View>
           ) : (
             <View style={styles.holdBadge}>
@@ -163,16 +171,17 @@ function ExerciseCard({
 
       {/* Weight row */}
       <View style={styles.weightRow}>
-        <WeightStat label="Last" value={item.lastWeightKg} />
+        <WeightStat label="Last" value={displayWt(item.lastWeightKg)} weightUnit={weightUnit} />
         <Ionicons name="arrow-forward" size={16} color={COLORS.textMuted} />
         <WeightStat
           label="Next"
-          value={item.nextWeightKg}
+          value={displayWt(item.nextWeightKg)}
           highlight={item.thresholdMet}
+          weightUnit={weightUnit}
         />
         <View style={styles.weightSpacer} />
-        <WeightStat label="All-time best" value={item.allTimeBestKg} />
-        {item.avgRpe !== null && <WeightStat label="Avg RPE" value={item.avgRpe} decimals={1} />}
+        <WeightStat label="All-time best" value={displayWt(item.allTimeBestKg)} weightUnit={weightUnit} />
+        {item.avgRpe !== null && <WeightStat label="Avg RPE" value={item.avgRpe} decimals={1} weightUnit="RPE" />}
       </View>
 
       {/* Completion history sparkline */}
@@ -214,7 +223,7 @@ function ExerciseCard({
                 <Text style={[styles.setCol, { color: setOk ? COLORS.success : COLORS.warning }]}>
                   {s.actualReps} reps
                 </Text>
-                <Text style={styles.setCol}>{s.actualWeight > 0 ? `${s.actualWeight} kg` : '—'}</Text>
+                <Text style={styles.setCol}>{s.actualWeight > 0 ? `${displayWt(s.actualWeight).toFixed(1)} ${weightUnit}` : '—'}</Text>
                 <Ionicons
                   name={setOk ? 'checkmark-circle' : 'ellipse-outline'}
                   size={16}
@@ -240,16 +249,18 @@ function WeightStat({
   value,
   highlight,
   decimals = 0,
+  weightUnit,
 }: {
   label: string;
   value: number;
   highlight?: boolean;
   decimals?: number;
+  weightUnit: string;
 }) {
   return (
     <View style={styles.wStat}>
       <Text style={[styles.wVal, highlight && { color: COLORS.success }]}>
-        {value > 0 ? `${value.toFixed(decimals)} kg` : '—'}
+        {value > 0 ? `${value.toFixed(decimals)} ${weightUnit}` : '—'}
       </Text>
       <Text style={styles.wLabel}>{label}</Text>
     </View>
