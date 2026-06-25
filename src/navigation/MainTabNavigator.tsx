@@ -7,8 +7,6 @@ import DashboardNavigator from './stacks/DashboardNavigator';
 import WorkoutNavigator from './stacks/WorkoutNavigator';
 import BodyNavigator from './stacks/BodyNavigator';
 import NutritionNavigator from './stacks/NutritionNavigator';
-import LongevityNavigator from './stacks/LongevityNavigator';
-
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
@@ -18,7 +16,6 @@ const TAB_ICONS: Record<keyof MainTabParamList, { active: IoniconsName; inactive
   Workout: { active: 'barbell', inactive: 'barbell-outline' },
   Body: { active: 'body', inactive: 'body-outline' },
   Nutrition: { active: 'nutrition', inactive: 'nutrition-outline' },
-  Longevity: { active: 'heart', inactive: 'heart-outline' },
 };
 
 export default function MainTabNavigator() {
@@ -52,7 +49,6 @@ export default function MainTabNavigator() {
       <Tab.Screen name="Workout" component={WorkoutNavigator} />
       <Tab.Screen name="Body" component={BodyNavigator} />
       <Tab.Screen name="Nutrition" component={NutritionNavigator} />
-      <Tab.Screen name="Longevity" component={LongevityNavigator} />
     </Tab.Navigator>
   );
 }

@@ -325,7 +325,7 @@ export default function DashboardScreen() {
       {/* ── Longevity ─────────────────────────────────────────── */}
       <SectionHeader
         title="Longevity"
-        action={{ label: 'Details →', onPress: () => navigation.navigate('Longevity', { screen: 'LongevityHome' }) }}
+        action={{ label: 'Details →', onPress: () => navigation.navigate('LongevityHome') }}
       />
 
       {/* Score hero */}
@@ -371,7 +371,7 @@ export default function DashboardScreen() {
             <DashMarkerCard
               key={m.type}
               marker={m}
-              onPress={() => navigation.navigate('Longevity', { screen: 'BiomarkerDetail', params: { type: m.type } })}
+              onPress={() => navigation.navigate('BiomarkerDetail', { type: m.type })}
             />
           ))}
         </>
@@ -386,7 +386,7 @@ export default function DashboardScreen() {
               <TouchableOpacity
                 key={t}
                 style={styles.untrackedChip}
-                onPress={() => navigation.navigate('Longevity', { screen: 'LogBiomarker', params: { type: t } })}
+                onPress={() => navigation.navigate('LogBiomarker', { type: t })}
               >
                 <Ionicons name={BIOMARKER_META[t].icon as any} size={16} color={COLORS.textMuted} />
                 <Text style={styles.untrackedText}>{BIOMARKER_META[t].label}</Text>

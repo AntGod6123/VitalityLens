@@ -7,6 +7,9 @@ import QoLRecommendationsScreen from '../../screens/Dashboard/QoLRecommendations
 import ProfileEditScreen from '../../screens/Settings/ProfileEditScreen';
 import DataManagementScreen from '../../screens/Settings/DataManagementScreen';
 import NotificationSettingsScreen from '../../screens/Settings/NotificationSettingsScreen';
+import LongevityHomeScreen from '../../screens/Longevity/LongevityHomeScreen';
+import LogBiomarkerScreen from '../../screens/Longevity/LogBiomarkerScreen';
+import BiomarkerDetailScreen from '../../screens/Longevity/BiomarkerDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,6 +28,9 @@ export default function DashboardNavigator() {
       <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ title: 'Edit Profile' }} />
       <Stack.Screen name="DataManagement" component={DataManagementScreen} options={{ title: 'Data & Backup' }} />
       <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} options={{ title: 'Reminders' }} />
+      <Stack.Screen name="LongevityHome" component={LongevityHomeScreen} options={{ title: 'Longevity' }} />
+      <Stack.Screen name="LogBiomarker" component={LogBiomarkerScreen} options={{ title: 'Log Biomarker' }} />
+      <Stack.Screen name="BiomarkerDetail" component={BiomarkerDetailScreen} options={{ title: 'Biomarker Detail' }} />
     </Stack.Navigator>
   );
 }
