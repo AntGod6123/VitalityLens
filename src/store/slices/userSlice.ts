@@ -62,6 +62,9 @@ const userSlice = createSlice({
     setSensorIntegration(state, action: PayloadAction<boolean>) {
       if (state.profile) state.profile.sensorIntegration = action.payload;
     },
+    setShowInfoIcons(state, action: PayloadAction<boolean>) {
+      if (state.profile) state.profile.showInfoIcons = action.payload;
+    },
     clearProfile(state) {
       state.profile = null;
       state.onboardingComplete = false;
@@ -79,6 +82,7 @@ export const {
   setUnitSystem,
   setTheme,
   setSensorIntegration,
+  setShowInfoIcons,
   completeOnboarding,
   clearProfile,
 } = userSlice.actions;

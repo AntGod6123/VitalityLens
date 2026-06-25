@@ -9,6 +9,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import ScreenContainer from '../../components/common/ScreenContainer';
 import EmptyState from '../../components/common/EmptyState';
+import InfoButton from '../../components/common/InfoButton';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useUnits } from '../../hooks/useUnits';
 import { COLORS } from '../../constants';
@@ -97,9 +98,16 @@ export default function ProgressiveOverloadScreen() {
       ))}
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Weight increases when ≥{Math.round(COMPLETION_THRESHOLD * 100)}% of programmed reps are completed across all sets.
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text style={styles.footerText}>
+            Weight increases when ≥{Math.round(COMPLETION_THRESHOLD * 100)}% of reps are hit.
+          </Text>
+          <InfoButton
+            title="Progressive Overload"
+            body={`When you complete ≥${Math.round(COMPLETION_THRESHOLD * 100)}% of your programmed reps across all sets in the last session, the app suggests increasing the weight next time. This is the double-progression method: hit your rep ceiling → add weight.`}
+            size={14}
+          />
+        </View>
       </View>
     </ScreenContainer>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import ScreenContainer from '../../components/common/ScreenContainer';
+import InfoButton from '../../components/common/InfoButton';
 import GaugeBar from '../../components/charts/GaugeBar';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useUnits } from '../../hooks/useUnits';
@@ -23,12 +24,14 @@ export default function FFMIDetailScreen() {
 
   return (
     <ScreenContainer>
-      <Text style={styles.heading}>Fat-Free Mass Index</Text>
-      <Text style={styles.formula}>FFMI = Lean Body Mass (kg) ÷ height (m)²</Text>
-      <Text style={styles.sub}>
-        Normalised FFMI corrects for height: +6.1 × (1.8 − height_m). Both values are shown below.
-        Source: Kouri et al. (1995). Natural ceiling is ~25.
-      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+        <Text style={styles.heading}>Fat-Free Mass Index</Text>
+        <InfoButton
+          title="What is FFMI?"
+          body="FFMI = Lean Body Mass (kg) ÷ height (m)². Normalised FFMI adjusts for height using: +6.1 × (1.8 − height_m). The natural ceiling without performance-enhancing drugs is ~25 (Kouri et al., 1995)."
+        />
+      </View>
+      <Text style={styles.formula}>FFMI = LBM (kg) ÷ height (m)²</Text>
 
       {ffmi == null ? (
         <Text style={styles.empty}>Add a body measurement with body fat % to see your FFMI.</Text>

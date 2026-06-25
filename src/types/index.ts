@@ -19,6 +19,7 @@ export interface UserProfile {
   unitSystem?: UnitSystem;
   theme?: AppTheme;
   sensorIntegration?: boolean;
+  showInfoIcons?: boolean;
 }
 
 /** Segment lengths in cm, measured from joint to joint */

@@ -3,7 +3,7 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppSelector';
-import { setAIProvider, setAIApiKey, setActivityLevel, setUnitSystem, setTheme, setSensorIntegration, clearProfile } from '../../store/slices/userSlice';
+import { setAIProvider, setAIApiKey, setActivityLevel, setUnitSystem, setTheme, setSensorIntegration, setShowInfoIcons, clearProfile } from '../../store/slices/userSlice';
 import { COLORS, ACTIVITY_LEVELS } from '../../constants';
 import { AIProvider, ActivityLevel, UnitSystem, AppTheme } from '../../types';
 import Button from '../../components/common/Button';
@@ -24,6 +24,7 @@ export default function AISettingsScreen() {
   const currentUnitSystem = profile?.unitSystem ?? 'metric';
   const currentTheme = profile?.theme ?? 'dark';
   const sensorEnabled = profile?.sensorIntegration ?? false;
+  const showInfoIcons = profile?.showInfoIcons ?? true;
 
   const [claudeKey, setClaudeKey] = useState(profile?.aiApiKeys?.claude ?? '');
   const [openaiKey, setOpenaiKey] = useState(profile?.aiApiKeys?.openai ?? '');
@@ -241,6 +242,31 @@ export default function AISettingsScreen() {
           </View>
           <View style={[styles.sensorToggle, sensorEnabled && styles.sensorToggleOn]}>
             <View style={[styles.sensorThumb, sensorEnabled && styles.sensorThumbOn]} />
+          </View>
+        </View>
+      </TouchableOpacity>
+
+      {/* ── Info Icons ── */}
+      <Text style={[styles.sectionTitle, { marginTop: 28 }]}>Info Icons</Text>
+      <Text style={styles.sectionDesc}>
+        Show ⓘ icons throughout the app to explain metrics, formulas, and recommendations. Tap them to learn more.
+      </Text>
+      <TouchableOpacity
+        style={[styles.profileCard, showInfoIcons && { borderColor: COLORS.primary }]}
+        onPress={() => dispatch(setShowInfoIcons(!showInfoIcons))}
+        activeOpacity={0.8}
+      >
+        <View style={styles.profileCardRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.profileName}>Show Info Icons</Text>
+            <Text style={styles.profileMeta}>
+              {showInfoIcons
+                ? 'Visible — tap ⓘ icons to read explanations'
+                : 'Hidden — info icons are suppressed globally'}
+            </Text>
+          </View>
+          <View style={[styles.sensorToggle, showInfoIcons && styles.sensorToggleOn]}>
+            <View style={[styles.sensorThumb, showInfoIcons && styles.sensorThumbOn]} />
           </View>
         </View>
       </TouchableOpacity>

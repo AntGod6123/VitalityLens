@@ -18,6 +18,7 @@ import { MuscleGroup } from '../../types';
 import LineChart from '../../components/charts/LineChart';
 import ScreenContainer from '../../components/common/ScreenContainer';
 import EmptyState from '../../components/common/EmptyState';
+import InfoButton from '../../components/common/InfoButton';
 
 // ─── Muscle group config ─────────────────────────────────────────────────────
 
@@ -149,8 +150,13 @@ export default function MuscleGrowthScreen() {
       {/* ── POTENTIAL TAB ─────────────────────────────────────── */}
       {tab === 'potential' && (
         <>
-          <Text style={styles.heading}>Natural Muscle Potential</Text>
-          <Text style={styles.sub}>Berkhan/Martin model: peak LBM at ~5% body fat = height(cm) − 100</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+            <Text style={styles.heading}>Natural Muscle Potential</Text>
+            <InfoButton
+              title="Natural Muscle Potential"
+              body="Uses the Berkhan/Martin model: natural LBM ceiling (kg) ≈ height (cm) − 100, measured at ~5% body fat. The Casey Butt model refines this using wrist and ankle measurements. These represent estimated genetic ceilings without performance-enhancing drugs."
+            />
+          </View>
 
           {!latest || !lbm ? (
             <Text style={styles.empty}>Add a body measurement with body fat % to calculate potential.</Text>

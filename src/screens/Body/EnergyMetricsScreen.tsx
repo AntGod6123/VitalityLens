@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenContainer from '../../components/common/ScreenContainer';
 import MetricCard from '../../components/common/MetricCard';
+import InfoButton from '../../components/common/InfoButton';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useUnits } from '../../hooks/useUnits';
 import { COLORS, ACTIVITY_LEVELS } from '../../constants';
@@ -54,10 +55,13 @@ export default function EnergyMetricsScreen() {
     <ScreenContainer>
       <View style={styles.headingRow}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.heading}>Energy & Metabolism</Text>
-          <Text style={styles.sub}>
-            TDEE = BMR (Katch-McArdle) + NEAT activity + today's workout energy (W=Fd).
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={styles.heading}>Energy & Metabolism</Text>
+            <InfoButton
+              title="How TDEE is calculated"
+              body="TDEE = BMR (Katch-McArdle) + NEAT activity + today's workout energy (W = F × d). BMR uses lean body mass; workout energy uses your limb measurements to estimate range of motion."
+            />
+          </View>
         </View>
         <TouchableOpacity style={styles.coachBtn} onPress={() => navigation.navigate('EnergyCoaching')}>
           <Ionicons name="sparkles" size={16} color={COLORS.secondary} />
@@ -70,7 +74,13 @@ export default function EnergyMetricsScreen() {
       ) : (
         <>
           {/* TDEE breakdown waterfall */}
-          <Text style={styles.sectionTitle}>TDEE Breakdown — Today</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12, marginTop: 8 }}>
+            <Text style={[styles.sectionTitle, { marginBottom: 0, marginTop: 0 }]}>TDEE Breakdown — Today</Text>
+            <InfoButton
+              title="TDEE Breakdown"
+              body="BMR is your resting metabolic rate using the Katch-McArdle formula (requires body fat %). NEAT is your non-exercise activity. Workout energy is estimated from W = F × d (force × range of motion)."
+            />
+          </View>
           <View style={styles.waterfallCard}>
             <WaterfallRow
               label="BMR"
@@ -107,7 +117,13 @@ export default function EnergyMetricsScreen() {
           )}
 
           {/* Calorie targets */}
-          <Text style={styles.sectionTitle}>Calorie Targets</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12, marginTop: 8 }}>
+            <Text style={[styles.sectionTitle, { marginBottom: 0, marginTop: 0 }]}>Calorie Targets</Text>
+            <InfoButton
+              title="Calorie Targets"
+              body="Maintenance = TDEE. Cut = TDEE − 20% (fat loss). Bulk = TDEE + 10% (muscle gain with minimal fat). Adjust based on weekly weight trends."
+            />
+          </View>
           <View style={styles.grid}>
             <MetricCard label="Maintenance" value={tdeeBreakdown?.tdee ?? 0} unit="kcal" subtitle="TDEE" accentColor={COLORS.secondary} style={styles.gridItem} />
             <MetricCard label="BMR" value={Math.round(bmr!)} unit="kcal" subtitle="At rest" accentColor={COLORS.primary} style={styles.gridItem} />
@@ -116,15 +132,21 @@ export default function EnergyMetricsScreen() {
           </View>
 
           <View style={styles.proteinCard}>
-            <Text style={styles.proteinLabel}>Daily Protein Target</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.proteinLabel}>Daily Protein Target</Text>
+              <InfoButton
+                title="Protein Target"
+                body="Calculated as 2.2 g per kg of lean body mass (LBM). LBM = total weight − fat mass. High protein intake preserves muscle during a cut and supports growth during a bulk."
+                size={13}
+              />
+            </View>
             <Text style={styles.proteinValue}>{protein} g</Text>
             <Text style={styles.proteinNote}>2.2 g × {displayWt(lbm).toFixed(1)} {weightUnit} LBM</Text>
           </View>
 
           <View style={styles.infoBox}>
-            <Text style={styles.infoTitle}>How it works</Text>
             <Text style={styles.infoText}>
-              Workout energy is calculated from W = F × d, where F is the weight lifted (kg × 9.81 N) and d is the range of motion derived from your limb measurements. Mechanical efficiency of 25% converts joules to kcal. Set your limb lengths in Body → Add Measurement.
+              Workout energy uses W = F × d (force × range of motion from your limb measurements). Set limb lengths in Body → Add Measurement.
             </Text>
           </View>
         </>

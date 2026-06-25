@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import ScreenContainer from '../../components/common/ScreenContainer';
+import InfoButton from '../../components/common/InfoButton';
 import GaugeBar from '../../components/charts/GaugeBar';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useUnits } from '../../hooks/useUnits';
@@ -24,12 +25,14 @@ export default function FMIDetailScreen() {
 
   return (
     <ScreenContainer>
-      <Text style={styles.heading}>Fat Mass Index</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+        <Text style={styles.heading}>Fat Mass Index</Text>
+        <InfoButton
+          title="What is FMI?"
+          body="FMI = Fat Mass (kg) ÷ height (m)². Unlike BMI, FMI isolates fat mass independent of muscle, giving a clearer picture of metabolic health. Used alongside FFMI it separates fat from lean tissue."
+        />
+      </View>
       <Text style={styles.formula}>FMI = Fat Mass (kg) ÷ height (m)²</Text>
-      <Text style={styles.sub}>
-        FMI isolates fat mass as a height-normalised index, separating it from muscle.
-        This gives a clearer picture than BMI, which conflates both. Used alongside FFMI, you see your full body composition picture.
-      </Text>
 
       {fmi == null ? (
         <Text style={styles.empty}>Add a body measurement with body fat % to see your FMI.</Text>
