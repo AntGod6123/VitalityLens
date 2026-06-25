@@ -12,6 +12,11 @@ import EnergyCoachingScreen from '../../screens/Body/EnergyCoachingScreen';
 import GoalTrackerScreen from '../../screens/Body/GoalTrackerScreen';
 import MeasurementHistoryScreen from '../../screens/Body/MeasurementHistoryScreen';
 import MuscleGrowthScreen from '../../screens/Workout/MuscleGrowthScreen';
+import MedicalHomeScreen from '../../screens/Medical/MedicalHomeScreen';
+import UploadDocumentScreen from '../../screens/Medical/UploadDocumentScreen';
+import InjuryDashboardScreen from '../../screens/Medical/InjuryDashboardScreen';
+import AddInjuryScreen from '../../screens/Medical/AddInjuryScreen';
+import DocumentDetailScreen from '../../screens/Medical/DocumentDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -35,6 +40,11 @@ export default function BodyNavigator() {
       <Stack.Screen name="GoalTracker" component={GoalTrackerScreen} options={{ title: 'Goal Tracker' }} />
       <Stack.Screen name="MeasurementHistory" component={MeasurementHistoryScreen} options={{ title: 'Measurement History' }} />
       <Stack.Screen name="MuscleGrowthProjection" component={MuscleGrowthScreen} options={{ title: 'Muscle Potential' }} />
+      <Stack.Screen name="MedicalHome" component={MedicalHomeScreen} options={{ title: 'Medical' }} />
+      <Stack.Screen name="UploadDocument" component={UploadDocumentScreen} options={{ title: 'Upload Document' }} />
+      <Stack.Screen name="InjuryDashboard" component={InjuryDashboardScreen} options={{ title: 'Injury Dashboard' }} />
+      <Stack.Screen name="AddInjury" component={AddInjuryScreen} options={{ title: 'Log Injury' }} />
+      <Stack.Screen name="DocumentDetail" component={DocumentDetailScreen} options={{ title: 'Document' }} />
     </Stack.Navigator>
   );
 }

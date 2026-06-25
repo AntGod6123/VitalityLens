@@ -103,6 +103,12 @@ export default function BodyHomeScreen() {
         >
           <Ionicons name="trending-up-outline" size={20} color={COLORS.warning} />
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.chartsBtn}
+          onPress={() => navigation.navigate('MedicalHome')}
+        >
+          <Ionicons name="medkit-outline" size={20} color={COLORS.danger} />
+        </TouchableOpacity>
       </View>
 
       {!latest ? (
