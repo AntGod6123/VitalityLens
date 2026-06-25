@@ -145,12 +145,6 @@ export default function LongevityHomeScreen() {
         </View>
       </View>
 
-      {/* Log button */}
-      <TouchableOpacity style={styles.logBtn} onPress={() => navigation.navigate('LogBiomarker')}>
-        <Ionicons name="add-circle-outline" size={18} color="#fff" />
-        <Text style={styles.logBtnText}>Log Biomarker</Text>
-      </TouchableOpacity>
-
       {/* Tracked markers */}
       {scoreResult.markers.length > 0 && (
         <>
@@ -350,17 +344,6 @@ const styles = StyleSheet.create({
   ratingText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
   heroSub: { color: COLORS.textMuted, fontSize: 12, lineHeight: 16 },
   bioAge: { color: COLORS.textMuted, fontSize: 12, marginTop: 4 },
-  logBtn: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    paddingVertical: 13,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginBottom: 18,
-  },
-  logBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   sectionLabel: {
     color: COLORS.textMuted,
     fontSize: 11,
