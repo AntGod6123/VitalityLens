@@ -13,11 +13,12 @@ Notifications.setNotificationHandler({
   }),
 });
 import { NavigationContainer } from '@react-navigation/native';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { store, persistor } from './src/store';
+import { store, persistor, RootState } from './src/store';
 import { COLORS } from './src/constants';
+import { ThemeProvider } from './src/contexts/ThemeContext';
 import RootNavigator from './src/navigation/RootNavigator';
 
 function LoadingScreen() {
@@ -28,16 +29,28 @@ function LoadingScreen() {
   );
 }
 
+function AppShell() {
+  const theme = useSelector((s: RootState) => s.user.profile?.theme ?? 'dark');
+  const statusStyle = theme === 'light' ? 'dark' : 'light';
+  const statusBg = theme === 'light' ? '#F1F5F9' : '#0F172A';
+
+  return (
+    <ThemeProvider>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <StatusBar style={statusStyle} backgroundColor={statusBg} />
+          <RootNavigator />
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </ThemeProvider>
+  );
+}
+
 export default function App() {
   return (
     <Provider store={store}>
       <PersistGate loading={<LoadingScreen />} persistor={persistor}>
-        <SafeAreaProvider>
-          <NavigationContainer>
-            <StatusBar style="light" backgroundColor="#0F172A" />
-            <RootNavigator />
-          </NavigationContainer>
-        </SafeAreaProvider>
+        <AppShell />
       </PersistGate>
     </Provider>
   );

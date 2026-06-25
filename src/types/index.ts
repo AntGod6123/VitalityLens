@@ -1,5 +1,8 @@
 // ─── User & Body Composition ────────────────────────────────────────────────
 
+export type UnitSystem = 'metric' | 'imperial';
+export type AppTheme = 'dark' | 'light';
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -13,6 +16,9 @@ export interface UserProfile {
   aiProvider: AIProvider;
   aiApiKeys: Partial<Record<AIProvider, string>>;
   onboardingComplete: boolean;
+  unitSystem?: UnitSystem;
+  theme?: AppTheme;
+  sensorIntegration?: boolean;
 }
 
 /** Segment lengths in cm, measured from joint to joint */

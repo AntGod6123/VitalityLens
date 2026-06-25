@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { UserProfile, LimbLengths, AIProvider, ActivityLevel } from '../../types';
+import { UserProfile, LimbLengths, AIProvider, ActivityLevel, UnitSystem, AppTheme } from '../../types';
 
 interface UserState {
   profile: UserProfile | null;
@@ -53,6 +53,15 @@ const userSlice = createSlice({
         state.profile.onboardingComplete = true;
       }
     },
+    setUnitSystem(state, action: PayloadAction<UnitSystem>) {
+      if (state.profile) state.profile.unitSystem = action.payload;
+    },
+    setTheme(state, action: PayloadAction<AppTheme>) {
+      if (state.profile) state.profile.theme = action.payload;
+    },
+    setSensorIntegration(state, action: PayloadAction<boolean>) {
+      if (state.profile) state.profile.sensorIntegration = action.payload;
+    },
     clearProfile(state) {
       state.profile = null;
       state.onboardingComplete = false;
@@ -67,6 +76,9 @@ export const {
   setAIProvider,
   setAIApiKey,
   setActivityLevel,
+  setUnitSystem,
+  setTheme,
+  setSensorIntegration,
   completeOnboarding,
   clearProfile,
 } = userSlice.actions;

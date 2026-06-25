@@ -9,6 +9,7 @@ import GaugeBar from '../../components/charts/GaugeBar';
 import Button from '../../components/common/Button';
 import EmptyState from '../../components/common/EmptyState';
 import { useAppSelector } from '../../hooks/useAppSelector';
+import { useUnits } from '../../hooks/useUnits';
 import { COLORS, FFMI_BANDS, FMI_BANDS } from '../../constants';
 import {
   calculateFFMI,
@@ -21,6 +22,7 @@ import { estimateBodyCompChange, calculateFullTDEE } from '../../utils/energyExp
 
 export default function BodyHomeScreen() {
   const navigation = useNavigation<any>();
+  const { formatWeight, formatHeight, weightUnit } = useUnits();
   const measurements = useAppSelector(s => s.body.measurements);
   const latest = useAppSelector(s => s.body.latestMeasurement);
   const sessions = useAppSelector(s => s.workout.sessions);
@@ -126,7 +128,7 @@ export default function BodyHomeScreen() {
 
           {/* Core metrics grid */}
           <View style={styles.grid}>
-            <MetricCard label="Weight" value={latest.weightKg.toFixed(1)} unit="kg" accentColor={COLORS.text} style={styles.gridItem} />
+            <MetricCard label="Weight" value={String(formatWeight(latest.weightKg))} unit={weightUnit} accentColor={COLORS.text} style={styles.gridItem} />
             <MetricCard label="Body Fat" value={latest.bodyFatPercent ? latest.bodyFatPercent.toFixed(1) : '—'} unit="%" accentColor={COLORS.warning} style={styles.gridItem} />
             <MetricCard label="LBM" value={lbm ? lbm.toFixed(1) : '—'} unit="kg" subtitle="Lean Body Mass" accentColor={COLORS.primary} style={styles.gridItem} />
             <MetricCard label="Fat Mass" value={fm ? fm.toFixed(1) : '—'} unit="kg" accentColor={COLORS.accent} style={styles.gridItem} />
@@ -184,7 +186,7 @@ export default function BodyHomeScreen() {
                   </View>
                 )}
               </View>
-              <Text style={styles.historyVal}>{m.weightKg} kg</Text>
+              <Text style={styles.historyVal}>{formatWeight(m.weightKg)} {weightUnit}</Text>
               {m.bodyFatPercent ? <Text style={styles.historyVal}>{m.bodyFatPercent}% BF</Text> : null}
               {m.ffmi ? <Text style={styles.historyVal}>FFMI {m.ffmi.toFixed(1)}</Text> : null}
             </View>

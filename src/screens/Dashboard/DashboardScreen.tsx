@@ -14,6 +14,7 @@ import {
 } from '../../utils/bodyComposition';
 import { calculateFullTDEE } from '../../utils/energyExpenditure';
 import { computeOverloadTargets } from '../../utils/progressiveOverload';
+import { useUnits } from '../../hooks/useUnits';
 
 const GOAL_TYPE_COLORS: Record<string, string> = {
   muscle_gain: COLORS.primary,
@@ -33,6 +34,7 @@ export default function DashboardScreen() {
   const userProfile = useAppSelector(s => s.user.profile);
 
   const aiProvider = userProfile?.aiProvider ?? 'none';
+  const { formatWeight } = useUnits();
 
   const lbm = latest && latest.bodyFatPercent
     ? calculateLBM(latest.weightKg, latest.bodyFatPercent)

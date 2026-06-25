@@ -3,9 +3,9 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppSelector';
-import { setAIProvider, setAIApiKey, setActivityLevel, clearProfile } from '../../store/slices/userSlice';
+import { setAIProvider, setAIApiKey, setActivityLevel, setUnitSystem, setTheme, setSensorIntegration, clearProfile } from '../../store/slices/userSlice';
 import { COLORS, ACTIVITY_LEVELS } from '../../constants';
-import { AIProvider, ActivityLevel } from '../../types';
+import { AIProvider, ActivityLevel, UnitSystem, AppTheme } from '../../types';
 import Button from '../../components/common/Button';
 import ScreenContainer from '../../components/common/ScreenContainer';
 
@@ -21,6 +21,9 @@ export default function AISettingsScreen() {
   const profile = useAppSelector(s => s.user.profile);
   const currentProvider = profile?.aiProvider ?? 'none';
   const currentActivityLevel = profile?.activityLevel ?? 'sedentary';
+  const currentUnitSystem = profile?.unitSystem ?? 'metric';
+  const currentTheme = profile?.theme ?? 'dark';
+  const sensorEnabled = profile?.sensorIntegration ?? false;
 
   const [claudeKey, setClaudeKey] = useState(profile?.aiApiKeys?.claude ?? '');
   const [openaiKey, setOpenaiKey] = useState(profile?.aiApiKeys?.openai ?? '');
@@ -177,6 +180,71 @@ export default function AISettingsScreen() {
         </View>
       </TouchableOpacity>
 
+      {/* ── Units ── */}
+      <Text style={[styles.sectionTitle, { marginTop: 28 }]}>Units</Text>
+      <Text style={styles.sectionDesc}>Choose how weight and height values are displayed throughout the app.</Text>
+      <View style={styles.toggleRow}>
+        {(['metric', 'imperial'] as UnitSystem[]).map(u => (
+          <TouchableOpacity
+            key={u}
+            style={[styles.toggleOption, currentUnitSystem === u && styles.toggleOptionActive]}
+            onPress={() => dispatch(setUnitSystem(u))}
+          >
+            <Text style={[styles.toggleOptionText, currentUnitSystem === u && styles.toggleOptionTextActive]}>
+              {u === 'metric' ? 'Metric (kg / cm)' : 'Imperial (lbs / in)'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* ── Theme ── */}
+      <Text style={[styles.sectionTitle, { marginTop: 28 }]}>Appearance</Text>
+      <Text style={styles.sectionDesc}>Switch between dark and light mode. Changes take effect immediately.</Text>
+      <View style={styles.toggleRow}>
+        {(['dark', 'light'] as AppTheme[]).map(t => (
+          <TouchableOpacity
+            key={t}
+            style={[styles.toggleOption, currentTheme === t && styles.toggleOptionActive]}
+            onPress={() => dispatch(setTheme(t))}
+          >
+            <Ionicons
+              name={t === 'dark' ? 'moon-outline' : 'sunny-outline'}
+              size={16}
+              color={currentTheme === t ? COLORS.primary : COLORS.textMuted}
+              style={{ marginRight: 6 }}
+            />
+            <Text style={[styles.toggleOptionText, currentTheme === t && styles.toggleOptionTextActive]}>
+              {t === 'dark' ? 'Dark Mode' : 'Light Mode'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* ── Sensor integration ── */}
+      <Text style={[styles.sectionTitle, { marginTop: 28 }]}>Sensor Integration</Text>
+      <Text style={styles.sectionDesc}>
+        Link your device's step counter and heart rate sensor to enrich energy expenditure estimates and longevity biomarkers.
+      </Text>
+      <TouchableOpacity
+        style={[styles.profileCard, sensorEnabled && { borderColor: COLORS.primary }]}
+        onPress={() => dispatch(setSensorIntegration(!sensorEnabled))}
+        activeOpacity={0.8}
+      >
+        <View style={styles.profileCardRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.profileName}>Enable Sensor Integration</Text>
+            <Text style={styles.profileMeta}>
+              {sensorEnabled
+                ? 'Active — step counter & heart rate linked'
+                : 'Inactive — tap to enable device sensors'}
+            </Text>
+          </View>
+          <View style={[styles.sensorToggle, sensorEnabled && styles.sensorToggleOn]}>
+            <View style={[styles.sensorThumb, sensorEnabled && styles.sensorThumbOn]} />
+          </View>
+        </View>
+      </TouchableOpacity>
+
       <TouchableOpacity
         style={styles.resetBtn}
         onPress={() =>
@@ -263,4 +331,36 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   resetText: { color: COLORS.danger, fontSize: 14 },
+  toggleRow: { flexDirection: 'row', gap: 10 },
+  toggleOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  toggleOptionActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primary + '15' },
+  toggleOptionText: { color: COLORS.textMuted, fontSize: 13, fontWeight: '600' },
+  toggleOptionTextActive: { color: COLORS.primary },
+  sensorToggle: {
+    width: 44,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: COLORS.surfaceLight,
+    padding: 3,
+    justifyContent: 'center',
+  },
+  sensorToggleOn: { backgroundColor: COLORS.primary },
+  sensorThumb: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: COLORS.textMuted,
+  },
+  sensorThumbOn: { backgroundColor: '#fff', marginLeft: 18 },
 });

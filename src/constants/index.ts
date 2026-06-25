@@ -1,7 +1,7 @@
 export const APP_NAME = 'VitalityLens';
 export const APP_VERSION = '0.1.0';
 
-export const COLORS = {
+export const DARK_COLORS = {
   primary: '#2563EB',
   secondary: '#10B981',
   accent: '#F59E0B',
@@ -14,7 +14,25 @@ export const COLORS = {
   textMuted: '#94A3B8',
   border: '#334155',
   success: '#22C55E',
-} as const;
+};
+
+export const LIGHT_COLORS = {
+  primary: '#2563EB',
+  secondary: '#059669',
+  accent: '#D97706',
+  danger: '#DC2626',
+  warning: '#EA580C',
+  background: '#F1F5F9',
+  surface: '#FFFFFF',
+  surfaceLight: '#E2E8F0',
+  text: '#0F172A',
+  textMuted: '#64748B',
+  border: '#CBD5E1',
+  success: '#16A34A',
+};
+
+// Mutable so ThemeContext can swap in-place — do not freeze
+export const COLORS: Record<keyof typeof DARK_COLORS, string> = { ...DARK_COLORS };
 
 export const FONTS = {
   regular: 'Inter-Regular',
