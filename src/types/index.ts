@@ -309,6 +309,29 @@ export interface LongevityAnalysisOutput {
   biologicalAgeEstimate?: number;
 }
 
+// ─── Meal Planning ───────────────────────────────────────────────────────────
+
+export interface MealPlanSlot {
+  name: string;
+  description?: string;
+  calories?: number;
+  proteinG?: number;
+  carbsG?: number;
+  fatG?: number;
+}
+
+export interface MealPlanDay {
+  dayLabel: string;
+  meals: MealPlanSlot[];
+}
+
+export interface MealPlanTemplate {
+  id: string;
+  name: string;
+  createdAt: string;
+  days: MealPlanDay[];
+}
+
 export interface NutritionLog {
   id: string;
   date: string;

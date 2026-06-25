@@ -1,14 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { NutritionLog, SupplementEntry } from '../../types';
+import { MealPlanTemplate, NutritionLog, SupplementEntry } from '../../types';
 
 interface NutritionState {
   logs: NutritionLog[];
   supplements: SupplementEntry[];
+  mealPlan: MealPlanTemplate | null;
 }
 
 const initialState: NutritionState = {
   logs: [],
   supplements: [],
+  mealPlan: null,
 };
 
 const nutritionSlice = createSlice({
@@ -31,10 +33,16 @@ const nutritionSlice = createSlice({
     removeSupplement(state, action: PayloadAction<string>) {
       state.supplements = state.supplements.filter(s => s.id !== action.payload);
     },
+    setMealPlan(state, action: PayloadAction<MealPlanTemplate>) {
+      state.mealPlan = action.payload;
+    },
+    clearMealPlan(state) {
+      state.mealPlan = null;
+    },
   },
 });
 
-export const { addLog, updateLog, deleteLog, addSupplement, removeSupplement } =
+export const { addLog, updateLog, deleteLog, addSupplement, removeSupplement, setMealPlan, clearMealPlan } =
   nutritionSlice.actions;
 
 export default nutritionSlice.reducer;

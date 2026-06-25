@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,7 +15,12 @@ export default function NutritionHomeScreen() {
   const navigation = useNavigation<any>();
   const logs = useAppSelector(s => s.nutrition.logs);
   const supplements = useAppSelector(s => s.nutrition.supplements);
+  const mealPlan = useAppSelector(s => s.nutrition.mealPlan);
   const latest = useAppSelector(s => s.body.latestMeasurement);
+  const restrictions = useAppSelector(s =>
+    s.medical.documents.flatMap(d => d.extractedRestrictions ?? [])
+  );
+  const uniqueRestrictions = useMemo(() => [...new Set(restrictions)], [restrictions]);
   const userProfile = useAppSelector(s => s.user.profile);
 
   const today = new Date().toISOString().split('T')[0];
@@ -36,6 +41,20 @@ export default function NutritionHomeScreen() {
 
   return (
     <ScreenContainer>
+      {/* Dietary restrictions banner */}
+      {uniqueRestrictions.length > 0 && (
+        <TouchableOpacity
+          style={styles.restrictionsBanner}
+          onPress={() => navigation.navigate('MealPlanner')}
+        >
+          <Ionicons name="warning-outline" size={14} color={COLORS.warning} />
+          <Text style={styles.restrictionsBannerText} numberOfLines={1}>
+            Restrictions: {uniqueRestrictions.join(' · ')}
+          </Text>
+          <Ionicons name="chevron-forward" size={14} color={COLORS.textMuted} />
+        </TouchableOpacity>
+      )}
+
       {/* Targets & today progress */}
       {tdee ? (
         <View style={styles.targetsCard}>
@@ -67,8 +86,8 @@ export default function NutritionHomeScreen() {
       {/* Quick actions */}
       <View style={styles.actions}>
         <Button title="Log Today" onPress={() => navigation.navigate('FoodLog', { date: today })} style={styles.actionBtn} />
+        <Button title="Meal Plan" onPress={() => navigation.navigate('MealPlanner')} variant={mealPlan ? 'primary' : 'secondary'} style={styles.actionBtn} />
         <Button title="Supplements" onPress={() => navigation.navigate('SupplementLog')} variant="secondary" style={styles.actionBtn} />
-        <Button title="AI Analysis" onPress={() => navigation.navigate('NutritionAnalysis')} variant="secondary" style={styles.actionBtn} />
       </View>
 
       <SectionHeader
@@ -183,6 +202,18 @@ function MacroChip({ label, value, color }: { label: string; value: string | num
 }
 
 const styles = StyleSheet.create({
+  restrictionsBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COLORS.warning + '18',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: COLORS.warning + '40',
+  },
+  restrictionsBannerText: { flex: 1, color: COLORS.warning, fontSize: 12, fontWeight: '600' },
   targetsCard: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 16, marginBottom: 12 },
   targetsTitle: { color: COLORS.text, fontSize: 15, fontWeight: '700', marginBottom: 12 },
   targetsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
