@@ -415,11 +415,10 @@ export interface Goal {
   targetDate?: string;
   createdAt: string;
   isCompleted: boolean;
+  exerciseName?: string; // for strength goals — which lift
 }
 
-export type GoalType =
-  | 'weight_loss' | 'muscle_gain' | 'strength' | 'endurance'
-  | 'body_fat' | 'ffmi' | 'fmi' | 'nutrition' | 'longevity' | 'custom';
+export type GoalType = 'muscle_gain' | 'strength' | 'endurance' | 'body_fat';
 
 // ─── AI Provider ─────────────────────────────────────────────────────────────
 

@@ -16,16 +16,10 @@ import { calculateFullTDEE } from '../../utils/energyExpenditure';
 import { computeOverloadTargets } from '../../utils/progressiveOverload';
 
 const GOAL_TYPE_COLORS: Record<string, string> = {
-  weight_loss: COLORS.warning,
-  muscle_gain: COLORS.secondary,
-  strength: COLORS.primary,
+  muscle_gain: COLORS.primary,
+  strength: COLORS.secondary,
   endurance: COLORS.accent,
   body_fat: COLORS.danger,
-  ffmi: COLORS.primary,
-  fmi: COLORS.accent,
-  nutrition: COLORS.secondary,
-  longevity: COLORS.success,
-  custom: COLORS.textMuted,
 };
 
 export default function DashboardScreen() {
