@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -96,8 +96,10 @@ export default function WorkoutBuilderScreen() {
   const [cardioStartDistanceKm, setCardioStartDistanceKm] = useState('3');
   const [cardioGoalDistanceKm, setCardioGoalDistanceKm] = useState('5');
 
-  const restrictedIds = useAppSelector(s =>
-    s.medical.injuries.filter(i => i.isActive).flatMap(i => i.restrictedExerciseIds ?? [])
+  const injuries = useAppSelector(s => s.medical.injuries);
+  const restrictedIds = useMemo(
+    () => injuries.filter(i => i.isActive).flatMap(i => i.restrictedExerciseIds ?? []),
+    [injuries],
   );
 
   function buildPlan() {
