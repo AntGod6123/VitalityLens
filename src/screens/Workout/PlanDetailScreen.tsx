@@ -1,12 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenContainer from '../../components/common/ScreenContainer';
 import Button from '../../components/common/Button';
+import DatePickerModal from '../../components/common/DatePickerModal';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
-import { activatePlan, deactivatePlan } from '../../store/slices/planSlice';
+import { activatePlan } from '../../store/slices/planSlice';
 import { COLORS } from '../../constants';
 import { PlannedDay, PlannedExercise } from '../../types';
 import { computeOverloadTargets } from '../../utils/progressiveOverload';
@@ -33,6 +34,11 @@ export default function PlanDetailScreen() {
     [overloadTargets],
   );
 
+  const [startDate, setStartDate] = useState(
+    plan?.startDate ? new Date(plan.startDate) : new Date()
+  );
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
   if (!plan) return null;
 
   const goalColor = GOAL_COLORS[plan.goal] ?? COLORS.primary;
@@ -47,11 +53,7 @@ export default function PlanDetailScreen() {
   }
 
   function handleActivate() {
-    if (plan!.isActive) {
-      dispatch(deactivatePlan(plan!.id));
-    } else {
-      dispatch(activatePlan({ id: plan!.id, startDate: new Date().toISOString() }));
-    }
+    dispatch(activatePlan({ id: plan!.id, startDate: startDate.toISOString() }));
   }
 
   function startTodaySession() {
@@ -106,19 +108,30 @@ export default function PlanDetailScreen() {
         </View>
       </View>
 
+      {/* Start date picker */}
+      {!plan.isActive && (
+        <DatePickerModal
+          value={startDate}
+          onChange={setStartDate}
+          label="Start date"
+        />
+      )}
+
       {/* Activate / Today CTA */}
       <View style={styles.ctaRow}>
-        <Button
-          title={plan.isActive ? 'Deactivate Plan' : 'Activate Plan'}
-          onPress={handleActivate}
-          variant={plan.isActive ? 'secondary' : 'primary'}
-          size="lg"
-          style={{ flex: 1 }}
-        />
+        {!plan.isActive && (
+          <Button
+            title="Activate Plan"
+            onPress={handleActivate}
+            variant="primary"
+            size="lg"
+            style={{ flex: 1 }}
+          />
+        )}
         {plan.isActive && todayDayIndex !== null && !plan.days[todayDayIndex]?.isRest && (
-          <TouchableOpacity style={styles.todayBtn} onPress={startTodaySession}>
+          <TouchableOpacity style={[styles.todayBtn, { flex: 1 }]} onPress={startTodaySession}>
             <Ionicons name="flash" size={16} color="#fff" />
-            <Text style={styles.todayBtnText}>Start Today</Text>
+            <Text style={styles.todayBtnText}>Start Today's Workout</Text>
           </TouchableOpacity>
         )}
       </View>

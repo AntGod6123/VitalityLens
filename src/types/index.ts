@@ -169,6 +169,7 @@ export interface SetEntry {
   reps?: number;
   weightKg?: number;
   completed?: boolean;        // false = failed set / stopped early
+  warmup?: boolean;           // warm-up sets count for calories but not progressive overload
   durationSeconds?: number;
   distanceMeters?: number;
   rpe?: number;
