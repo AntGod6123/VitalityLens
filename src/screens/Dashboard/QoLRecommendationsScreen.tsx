@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -42,7 +42,8 @@ export default function QoLRecommendationsScreen() {
   const userProfile = useAppSelector(s => s.user.profile);
   const latest = useAppSelector(s => s.body.latestMeasurement);
   const sessions = useAppSelector(s => s.workout.sessions);
-  const injuries = useAppSelector(s => s.medical.injuries.filter(i => i.isActive));
+  const allInjuries = useAppSelector(s => s.medical.injuries);
+  const injuries = useMemo(() => allInjuries.filter(i => i.isActive), [allInjuries]);
 
   const [result, setResult] = useState<QoLRecommendationsOutput | null>(null);
   const [loading, setLoading] = useState(false);

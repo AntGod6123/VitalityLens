@@ -17,10 +17,11 @@ export default function NutritionHomeScreen() {
   const supplements = useAppSelector(s => s.nutrition.supplements);
   const mealPlan = useAppSelector(s => s.nutrition.mealPlan);
   const latest = useAppSelector(s => s.body.latestMeasurement);
-  const restrictions = useAppSelector(s =>
-    s.medical.documents.flatMap(d => d.extractedRestrictions ?? [])
+  const documents = useAppSelector(s => s.medical.documents);
+  const uniqueRestrictions = useMemo(
+    () => [...new Set(documents.flatMap(d => d.extractedRestrictions ?? []))],
+    [documents],
   );
-  const uniqueRestrictions = useMemo(() => [...new Set(restrictions)], [restrictions]);
   const userProfile = useAppSelector(s => s.user.profile);
 
   const today = new Date().toISOString().split('T')[0];
