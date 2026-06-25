@@ -34,10 +34,6 @@ export default function WorkoutHomeScreen() {
           <Ionicons name="list" size={32} color={COLORS.accent} />
           <Text style={styles.actionLabel}>Exercises</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('MuscleGrowthProjection')}>
-          <Ionicons name="trending-up" size={32} color={COLORS.warning} />
-          <Text style={styles.actionLabel}>Projections</Text>
-        </TouchableOpacity>
         <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('WorkoutCritique')}>
           <Ionicons name="sparkles" size={32} color={COLORS.primary} />
           <Text style={styles.actionLabel}>AI Critique</Text>

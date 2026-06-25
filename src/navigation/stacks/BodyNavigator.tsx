@@ -11,6 +11,7 @@ import ProgressChartsScreen from '../../screens/Body/ProgressChartsScreen';
 import EnergyCoachingScreen from '../../screens/Body/EnergyCoachingScreen';
 import GoalTrackerScreen from '../../screens/Body/GoalTrackerScreen';
 import MeasurementHistoryScreen from '../../screens/Body/MeasurementHistoryScreen';
+import MuscleGrowthScreen from '../../screens/Workout/MuscleGrowthScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +34,7 @@ export default function BodyNavigator() {
       <Stack.Screen name="EnergyCoaching" component={EnergyCoachingScreen} options={{ title: 'AI Energy Coaching' }} />
       <Stack.Screen name="GoalTracker" component={GoalTrackerScreen} options={{ title: 'Goal Tracker' }} />
       <Stack.Screen name="MeasurementHistory" component={MeasurementHistoryScreen} options={{ title: 'Measurement History' }} />
+      <Stack.Screen name="MuscleGrowthProjection" component={MuscleGrowthScreen} options={{ title: 'Muscle Potential' }} />
     </Stack.Navigator>
   );
 }

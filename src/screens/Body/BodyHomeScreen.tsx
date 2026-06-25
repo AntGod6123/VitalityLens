@@ -97,6 +97,12 @@ export default function BodyHomeScreen() {
         >
           <Ionicons name="flag-outline" size={20} color={COLORS.secondary} />
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.chartsBtn}
+          onPress={() => navigation.navigate('MuscleGrowthProjection')}
+        >
+          <Ionicons name="trending-up-outline" size={20} color={COLORS.warning} />
+        </TouchableOpacity>
       </View>
 
       {!latest ? (
