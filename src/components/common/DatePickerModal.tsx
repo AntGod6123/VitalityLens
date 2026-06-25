@@ -30,7 +30,6 @@ export default function DatePickerModal({ value, onChange, label, minDate, maxDa
   const [viewMonth, setViewMonth] = useState(value.getMonth());
   const [selected, setSelected] = useState(new Date(value));
 
-  const today = maxDate ?? new Date();
   const minY = minDate?.getFullYear() ?? 1990;
 
   function prevMonth() {
@@ -39,9 +38,11 @@ export default function DatePickerModal({ value, onChange, label, minDate, maxDa
   }
 
   function nextMonth() {
-    const nextY = viewMonth === 11 ? viewYear + 1 : viewYear;
-    const nextM = viewMonth === 11 ? 0 : viewMonth + 1;
-    if (nextY > today.getFullYear() || (nextY === today.getFullYear() && nextM > today.getMonth())) return;
+    if (maxDate) {
+      const nextY = viewMonth === 11 ? viewYear + 1 : viewYear;
+      const nextM = viewMonth === 11 ? 0 : viewMonth + 1;
+      if (nextY > maxDate.getFullYear() || (nextY === maxDate.getFullYear() && nextM > maxDate.getMonth())) return;
+    }
     if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
     else setViewMonth(m => m + 1);
   }
@@ -49,7 +50,7 @@ export default function DatePickerModal({ value, onChange, label, minDate, maxDa
   function selectDay(day: number) {
     const d = new Date(viewYear, viewMonth, day);
     if (minDate && d < minDate) return;
-    if (d > today) return;
+    if (maxDate && d > maxDate) return;
     setSelected(d);
   }
 
@@ -106,7 +107,7 @@ export default function DatePickerModal({ value, onChange, label, minDate, maxDa
                 const cellDate = new Date(viewYear, viewMonth, day);
                 const isSelected = selected.getDate() === day && selected.getMonth() === viewMonth && selected.getFullYear() === viewYear;
                 const isToday = cellDate.toDateString() === new Date().toDateString();
-                const disabled = cellDate > today || (minDate ? cellDate < minDate : false);
+                const disabled = (maxDate ? cellDate > maxDate : false) || (minDate ? cellDate < minDate : false);
                 return (
                   <TouchableOpacity
                     key={day}
